@@ -1,2 +1,2 @@
-full-width  作为分区目录
-single       作为文章版面
+私人网站
+personal website
