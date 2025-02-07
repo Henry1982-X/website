@@ -1,0 +1,6 @@
+<button onclick="toggleText(this)" data-target="hiddenText3">Show translation</button>
+            <div id="hiddenText3" class="hidden">
+            <p><font color=#ACACAC>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            即使这些气味已经被稀释了，我们的鼻子也能够嗅到人类的气味。
+
+            </font></p></div><br></ul>
