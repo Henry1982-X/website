@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>LearnIn</title>
+<!-- meta -->
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- css -->
+<link href="../../../css/bootstrap.min.css" rel="stylesheet"/>
+<link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet"/>
+<link href="../../../css/pace.css" rel="stylesheet"/>
+<link href="../../../css/custom.css" rel="stylesheet"/>
+<!-- js -->
+<script src="../../../js/jquery-2.1.3.min.js"></script>
+<script src="../../../js/bootstrap.min.js"></script>
+<script src="../../../js/pace.min.js"></script>
+<script src="../../../js/modernizr.custom.js"></script>
+<style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.codehilite .hll { background-color: #ffffcc }
+.codehilite { background: #f8f8f8; }
+.codehilite .c { color: #3D7B7B; font-style: italic } /* Comment */
+.codehilite .err { border: 1px solid #F00 } /* Error */
+.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
+.codehilite .o { color: #666 } /* Operator */
+.codehilite .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.codehilite .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.codehilite .cp { color: #9C6500 } /* Comment.Preproc */
+.codehilite .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.codehilite .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.codehilite .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.codehilite .gd { color: #A00000 } /* Generic.Deleted */
+.codehilite .ge { font-style: italic } /* Generic.Emph */
+.codehilite .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.codehilite .gr { color: #E40000 } /* Generic.Error */
+.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.codehilite .gi { color: #008400 } /* Generic.Inserted */
+.codehilite .go { color: #717171 } /* Generic.Output */
+.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.codehilite .gs { font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.codehilite .gt { color: #04D } /* Generic.Traceback */
+.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
+.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.codehilite .kt { color: #B00040 } /* Keyword.Type */
+.codehilite .m { color: #666 } /* Literal.Number */
+.codehilite .s { color: #BA2121 } /* Literal.String */
+.codehilite .na { color: #687822 } /* Name.Attribute */
+.codehilite .nb { color: #008000 } /* Name.Builtin */
+.codehilite .nc { color: #00F; font-weight: bold } /* Name.Class */
+.codehilite .no { color: #800 } /* Name.Constant */
+.codehilite .nd { color: #A2F } /* Name.Decorator */
+.codehilite .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.codehilite .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.codehilite .nf { color: #00F } /* Name.Function */
+.codehilite .nl { color: #767600 } /* Name.Label */
+.codehilite .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.codehilite .nv { color: #19177C } /* Name.Variable */
+.codehilite .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.codehilite .w { color: #BBB } /* Text.Whitespace */
+.codehilite .mb { color: #666 } /* Literal.Number.Bin */
+.codehilite .mf { color: #666 } /* Literal.Number.Float */
+.codehilite .mh { color: #666 } /* Literal.Number.Hex */
+.codehilite .mi { color: #666 } /* Literal.Number.Integer */
+.codehilite .mo { color: #666 } /* Literal.Number.Oct */
+.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
+.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
+.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
+.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
+.codehilite .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.codehilite .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.codehilite .sx { color: #008000 } /* Literal.String.Other */
+.codehilite .sr { color: #A45A77 } /* Literal.String.Regex */
+.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
+.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
+.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.codehilite .fm { color: #00F } /* Name.Function.Magic */
+.codehilite .vc { color: #19177C } /* Name.Variable.Class */
+.codehilite .vg { color: #19177C } /* Name.Variable.Global */
+.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
+.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
+.codehilite .il { color: #666 } /* Literal.Number.Integer.Long */</style><script>
+    function copyCode(btn) {
+        var codeElem = btn.parentElement.querySelector('pre');
+        if (!codeElem) return;
+        var code = codeElem.innerText;
+        navigator.clipboard.writeText(code).then(function() {
+            var originalText = btn.textContent;
+            btn.textContent = '已复制!';
+            setTimeout(function() {
+                btn.textContent = originalText;
+            }, 2000);
+        }).catch(function(err) {
+            console.error('复制失败:', err);
+        });
+    }
+    </script><style>
+    .code-container {
+        position: relative;
+        margin: 1em 0;
+    }
+
+    .copy-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        padding: 5px 10px;
+        font-size: 0.8em;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .code-container:hover .copy-button {
+        opacity: 1;
+    }
+
+    .copy-button:focus {
+        outline: none;
+    }
+    </style></head>
+<body id="single">
+<div class="container">
+<header id="site-header">
+<div class="row">
+<div class="col-md-4 col-sm-5 col-xs-8">
+<div class="logo">
+<h2><a href="../../../index.html"><b>LearnIn</b></a></h2>
+</div>
+</div><!-- col-md-4 -->
+<div class="col-md-8 col-sm-7 col-xs-4">
+<nav class="main-nav" role="navigation">
+<div class="navbar-header">
+<button class="navbar-toggle" id="trigger-overlay" type="button">
+<span class="ion-navicon"></span>
+</button>
+</div>
+<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+<ul class="nav navbar-nav navbar-right">
+<li class="cl-effect-11"><a data-hover="首页" href="../../../index.html">首页</a></li>
+<li class="cl-effect-11"><a data-hover="博客" href="../../../blog-index.html">博客</a></li>
+<li class="cl-effect-11"><a data-hover="关于" href="../../../about.html">关于</a></li>
+<li class="cl-effect-11"><a data-hover="联系" href="../../../contact.html">联系</a></li>
+</ul>
+</div><!-- /.navbar-collapse -->
+</nav>
+<div id="header-search-box">
+<a href="#" id="search-menu"><span class="ion-ios-search-strong" id="search-icon"></span></a>
+<div class="search-form" id="search-form">
+<form action="#" id="searchform" method="get" role="search">
+<input placeholder="搜索" required="" type="search"/>
+<button type="submit"><span class="ion-ios-search-strong"></span></button>
+</form>
+</div>
+</div>
+</div><!-- col-md-8 -->
+</div>
+</header>
+</div>
+<div class="content-body">
+<div class="container">
+<div class="row">
+<main class="col-md-8">
+<article class="post post-1">
+<header class="entry-header">
+<h1 class="entry-title">Ubuntu 24.04 LTC 搭建我的世界1.20.1-forge服务器全流程</h1>
+<div class="entry-meta">
+<span class="post-date"><a href="#"><time class="entry-date" datetime="2025-2-8">2025年2月8日</time></a></span>
+</div>
+</header>
+<a name="1"><h2>1. 更新系统安装包</h2></a>
+<div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>sudo apt update
+sudo apt upgrade -y
+</code></pre></div></div>
+<a>&nbsp;</a><a name="2"><h2>2. 安装 Java21（自动配置环境）</h2></a>
+<div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>sudo add-apt-repository ppa:openjdk-r/ppa
+sudo apt update
+sudo apt install openjdk-21-jdk -y
+</code></pre></div></div>
+<p>通过以下命令检查是否正常显示Java版本，正常显示则表明安装成功</p>
+<div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>java -version
+</code></pre></div></div>
+<a>&nbsp;</a><a name="3"><h2>3.服务端部署</h2></a><a>&nbsp;</a>
+    
+
+<a name="3.1"><h2>方法一：安装 MCSM（适用于云服务器且有公网ip的情况）</h2></a><a>&nbsp;</a>
+<ul>
+    <p>安装使用以下命令</p>
+
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>sudo wget -qO- https://gitee.com/mcsmanager/script/raw/master/setup_cn.sh | bash
+    </code></pre></div></div>
+    <p>安装完后配置服务器防火墙端口，以腾讯云轻量级服务器为例，</p>
+    <p>就可以在网址 <code>公网ip:23333</code> 进行访问面板和开服</p>
+</ul>
+    
+
+
+<a>&nbsp;</a><a name="3.2"><h2>方法二：使用 mc-server 安装包和内网穿透工具（适用于在自己闲置电脑上配置且无公网ip的情况）</h2></a><a>&nbsp;</a>
+
+
+<h3>配置服务器安装包</h3>
+<ul>
+<p>下载forge服务端jar文件，官方下载网址如下，直接下载最新的版本（latest）</p>
+<ol><p><font color="#0024FF"><u><a href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html" target="blank">点击进入官网下载客户端</a></u></font></p></ol>
+<p>在ubuntu桌面下新建文件夹，放入forge-server文件，在文件目录下打开终端，使用以下命令</p>
+<div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>./forge-（完整文件名）.jar     # 这里只需要在终端中输入forge，再按Tab键就可自动补全文件名
+</code></pre></div></div>
+<p>等待自动下载和配置，全部下载完成后可以在文件夹中看到run.sh文件。</p>
+<p>在根目录下打开终端终端输入命令 <code>./run.sh</code> 启动服务，过一会服务会自动终止，需要修改文件夹中的 eula.txt 文件中的 false 为 ture ，再次启动 run.sh，等待生成世界并在控制面板中出现 <code>Done</code> 即可进行下一步。</p>
+</ul>
+    
+
+<h3>配置内网穿透</h3>
+<blockquote>
+<p>使用nat123进行内网穿透</p>
+</blockquote>
+    
+    
+    
+<ol>
+    
+    <li>安装服务端（针对Ubuntu 24.04 LTS）</li>
+
+    <p>本地环境更新</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>apt-get update
+    </code></pre></div></div>
+    <p>运行环境安装</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>apt-get install mono-complete
+    </code></pre></div></div>
+    <p>查看运行环境版本信息</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>mono -V
+    </code></pre></div></div>
+
+    <li>安装客户端</li>
+
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>cd .../         # 在需要放置客户端的根目录下打开终端或cd到根目录
+    mkdir nat123    # 在根目录下新建nat123文件夹
+    cd nat123       # 进入nat123文件夹中
+    </code></pre></div></div>
+    <p>下载安装包</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>wget http://www.nat123.com/down/nat123linux.tar.gz
+    </code></pre></div></div>
+    <p>解压安装包</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>tar -xf nat123linux.tar
+    </code></pre></div></div>
+    <p>在nat123文件夹中代开终端，输入命令启动客户端</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>mono nat123linux.sh
+    </code></pre></div></div>
+    <p>启动后输入账户和密码即可开启服务</p>
+
+    <li>配置端口映射</li>
+
+    <p>进入nat123官网，注册并登录账户，点击 <code>端口映射添加</code>
+    <img alt="端口映射添加" src="img/nat-1.png"/></p>
+    <ul>
+    <li>
+    <p><code>应用类型</code> 中选择 <code>其他（非网站）</code></p>
+    </li>
+    <li>
+    <p><code>映射线路</code> 选择 <code>freevip</code> 的线路</p>
+    </li>
+    <li>
+    <p><code>应用名称</code> 自定义设置，我这里默认为 <code>mc-server</code></p>
+    </li>
+    <li>
+    <p><code>内网端口</code> 设置为 <code>25565</code></p>
+    </li>
+    <li>
+    <p><code>内网地址</code> 默认 <code>127.0.0.1</code></p>
+    </li>
+    <li>
+    <p><code>外网端口</code> 随便设置，推荐直接使用分配的默认值</p>
+    </li>
+    <li>
+    <p><code>外网域名</code> 设置为 <code>xxx.域名</code>，其中xxx是可以自己设置的一个可分辨的值，最好是具有特殊性，如果账户充值 50RMB 以上也可以使用如下图中最后一行的域名</p>
+    </li>
+    </ul>
+    <p><img alt="端口映射配置内容示例" src="img/nat-2.png"/></p>
+    <p>​                      如图所配置的内容，这里自定义外网域名最前端为 <code>mmmccc</code></p>
+    <p><img alt="端口映射域名配置示例" src="img/nat-3.png"/></p>
+    <p>配置完成后，点击确认保存，使用 <code>其他（非网站）</code> 需要充值一定量的N币，建议充值4块钱就行，N币在修改这些配置内容时都要用到，nat123的带宽足够流畅运行mc服务器</p>
+    <p>充值完毕并且确认保存后，等待跳转，就可以看见映射列表中多了一行规则。在mc多人游戏中输入 <code>xxx.域名:外网端口</code> 就可以登录服务器</p>
+    <p>（xxx：自定义的可辨识名称，域名：自己选择的nat123分配的免费域名，外网端口：配置信息中随机分配的外网端口号）</p>
+    <h2>如果mc服务器使用了 Simple Voice Chat 模组，需要同上流程一样配置一个新的端口映射，<code>应用名称</code> 自定义，但是 <code>内网端口</code> 改为 <code>24454</code> ，<code>外网域名</code> 需要和之前配置的服务器外网域名一致，<code>外网端口</code> 随意（经我测试不需要一定映射到外网的24454端口）</h2>
+    <p><img alt="配置simplevoicechat的端口映射" src="img/nat-4.png"/></p>
+    
+</ol>
+
+    
+    
+<h2>两条规则都配置后就可以在服务器中使用 Simple Voice Chat 模组对话</h2>
+<p><img alt="配置mc多人游戏服务" src="img/nat-5.png"/></p>
+</article>
+</main>
+<aside class="col-md-4">
+<div class="widget widget-content">
+<h3 class="widget-title">目录</h3>
+<ul>
+<li>
+<a href="#1">更新系统安装包</a>
+</li>
+<li>
+<a href="#2">安装 Java21</a>
+</li>
+<li>
+<a href="#3">服务端部署</a>
+    <ul>
+    <a href="#3.1"><li>方法一：云服务器（有公网ip）</li></a>
+    <a href="#3.2"><li>方法二：本地闲置设备（无公网ip）</li></a>    
+    </ul>
+</li>
+</ul>
+</div>
+<div class="widget widget-tag-cloud">
+<h3 class="widget-title">标签云</h3>
+<ul>
+<li>
+<a href="#">MC</a>
+</li>
+<li>
+<a href="#">Ubuntu 24.04 LTS</a>
+</li>
+<li>
+<a href="#">服务器</a>
+</li>
+<li>
+<a href="#">MCSM</a>
+</li>
+<li>
+<a href="#">nat123</a>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+</div>
+</div>
+<footer id="site-footer">
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<p class="copyright">© 114514 LearnIn.icu - 网站模板取自<a href="http://www.cssmoban.com/" target="_blank" title="模板之家">模板之家</a>
+</p>
+</div>
+</div>
+</div>
+</footer>
+<!-- Mobile Menu -->
+<div class="overlay overlay-hugeinc">
+<button class="overlay-close" type="button"><span class="ion-ios-close-empty"></span></button>
+<nav>
+<ul>
+<li><a href="../../../index.html">首页</a></li>
+<li><a href="../../../full-width.html">博客</a></li>
+<li><a href="../../../about.html">关于</a></li>
+<li><a href="../../../contact.html">联系</a></li>
+</ul>
+</nav>
+</div>
+<script src="../../../js/script.js"></script>
+</body>
+</html>
