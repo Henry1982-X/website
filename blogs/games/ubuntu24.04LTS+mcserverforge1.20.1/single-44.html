@@ -178,23 +178,43 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <main class="col-md-8">
 <article class="post post-1">
 <header class="entry-header">
-<h1 class="entry-title">Ubuntu 24.04 LTS 搭建我的世界1.20.1-forge服务器全流程</h1>
+<h1 class="entry-title">Ubuntu 24.04 LTS 搭建我的世界1.20.1-forge服务器保姆级全流程（老设备再利用+无公网ip）</h1>
 <div class="entry-meta">
 <span class="post-date"><a href="#"><time class="entry-date" datetime="2025-2-8">2025年2月8日</time></a></span>
 </div>
 </header>
-<a name="1"><h2>1. 更新系统安装包</h2></a>
+    
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;本教程旨在为那些希望老设备再利用搭建mc服务器的用户提供帮助，并实现设备开机就可自动启动服务。同时本文为了照顾到极端小白，会将所有细节内容讲清楚，也会附上相关软件的原始链接，非小白请搭配目录快速食用。</p>
+    
+<a name="0"><h2>0. 硬件和系统准备</h2></a>
+    <ul>
+        <li>主机cpu需要双核或四核，频率至少为2GHz，越高越好</li>
+        <li>搭建mod服务器，内存至少4G，模组服务器至少8G（这里指内存条大小）</li>
+        <li>存储空间至少50G，越大越好，机械硬盘也没问题</li>
+        <li>一个U盘，用来制作系统启动盘，至少8G</li>
+        <li>Ubuntu 24.04 LTS系统&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://cn.ubuntu.com/download/desktop" target="blank"><font color="#003AFF">（点击进入官网下载）</font></a></li>
+        <img src="img/ubuntu-install.png"></img>
+    </ul>
+    
+<a name="1"><h2>1. 安装系统&nbsp;&nbsp;更新系统安装包</h2></a>
+
 <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>sudo apt update
 sudo apt upgrade -y
 </code></pre></div></div>
+    
 <a>&nbsp;</a><a name="2"><h2>2. 安装 Java21（自动配置环境）</h2></a>
+
 <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt update
 sudo apt install openjdk-21-jdk -y
 </code></pre></div></div>
+    
 <p>通过以下命令检查是否正常显示Java版本，正常显示则表明安装成功</p>
+    
 <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>java -version
 </code></pre></div></div>
+    
+    
 <a>&nbsp;</a><a name="3"><h2>3.服务端部署</h2></a><a>&nbsp;</a>
     
 
@@ -216,7 +236,7 @@ sudo apt install openjdk-21-jdk -y
 <h3>配置服务器安装包</h3>
 <ul>
 <p>下载forge服务端jar文件，官方下载网址如下，直接下载最新的版本（latest）</p>
-<ol><p><font color="#0024FF"><u><a href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html" target="blank">点击进入官网下载客户端</a></u></font></p></ol>
+<p><font color="#0024FF"><u><a href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html" target="blank">https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html</a></u></font></p>
 <p>在ubuntu桌面下新建文件夹，放入forge-server文件，在文件目录下打开终端，使用以下命令</p>
 <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>./forge-（完整文件名）.jar     # 这里只需要在终端中输入forge，再按Tab键就可自动补全文件名
 </code></pre></div></div>
