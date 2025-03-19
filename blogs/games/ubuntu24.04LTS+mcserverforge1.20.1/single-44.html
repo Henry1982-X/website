@@ -234,14 +234,18 @@ sudo apt install openjdk-21-jdk -y
 
 
 <h3>配置服务器安装包</h3>
+    <ul>
+        <p>（ 1 ）直接下载1.20.1服务端压缩文件，无需本地配置，下载解压即可使用</p>
+    </ul>
 <ul>
-<p>下载forge服务端jar文件，官方下载网址如下，直接下载最新的版本（latest）</p>
-<p><font color="#0024FF"><u><a href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html" target="blank">https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html</a></u></font></p>
-<p>在ubuntu桌面下新建文件夹，放入forge-server文件，在文件目录下打开终端，使用以下命令</p>
-<div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>./forge-（完整文件名）.jar     # 这里只需要在终端中输入forge，再按Tab键就可自动补全文件名
-</code></pre></div></div>
-<p>等待自动下载和配置，全部下载完成后可以在文件夹中看到run.sh文件。</p>
-<p>在根目录下打开终端终端输入命令 <code>./run.sh</code> 启动服务，过一会服务会自动终止，需要修改文件夹中的 eula.txt 文件中的 false 为 ture ，再次启动 run.sh，等待生成世界并在控制面板中出现 <code>Done</code> 即可进行下一步。</p>
+    <p>（ 2 ）下载forge服务端jar文件，官方下载网址如下，直接下载最新的版本（latest）</p>
+    <p><font color="#0024FF"><u>
+        <a href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html" target="blank">https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html</a></u></font></p>
+    <p>在ubuntu桌面下新建文件夹，放入forge-server文件，在文件目录下打开终端，使用以下命令</p>
+    <div class="code-container"><button class="copy-button" onclick="copyCode(this)">复制代码</button><div class="codehilite"><pre><span></span><code>java -jar forge-（完整文件名）.jar     # 这里只需要在终端中输入forge，再按Tab键就可自动补全文件名
+    </code></pre></div></div>
+    <p>等待自动下载和配置，全部下载完成后可以在文件夹中看到run.sh文件。</p>
+    <p>在根目录下打开终端终端输入命令 <code>./run.sh</code> 启动服务，过一会服务会自动终止，需要修改文件夹中的 eula.txt 文件中的 false 为 ture ，再次启动 run.sh，等待生成世界并在控制面板中出现 <code>Done</code> 即可进行下一步。</p>
 </ul>
     
 
