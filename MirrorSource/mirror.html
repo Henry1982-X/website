@@ -89,7 +89,7 @@
                 <div class="space-y-6">
                     <div>
                         <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            首先，对于全新ubuntu24 系统，你需要更新原始库和依赖项，并安装基础的编译工具和依赖项
+                            首先，对于全新ubuntu24 系统，你需要更新原始库和依赖项，并安装基础的编译工具和依赖项（此过程中可能会出现一个紫色背景的选项界面，请直接回车确认，无需选择其他项）
                         </p>
                         <details class="mb-4">
                             <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -113,6 +113,29 @@ openmpi-bin libopenmpi-dev curl wget unzip tcsh cmake libxml2-dev pkg-config</co
 
                     <div>
                         <p class="text-gray-700 dark:text-gray-300 mb-2">
+                            为超级管理员配置密码
+                        </p>
+                        <details class="mb-4">
+                            <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <span>配置超级管理员密码</span>
+                                <div class="flex space-x-2">
+                                    <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </summary>
+                            <div class="mt-2 relative">
+                                <pre><code class="language-bash">sudo passwd  # 需要输入自定义的密码两次
+su  # 这个指令将进入超级管理员模式，你需要输入刚才设定的密码并回车</code></pre>
+                            </div>
+                        </details>
+                    </div>
+                    
+
+                    <div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2">
                             创建工作目录并设置环境变量
                         </p>
                         <details class="mb-4">
@@ -129,15 +152,16 @@ openmpi-bin libopenmpi-dev curl wget unzip tcsh cmake libxml2-dev pkg-config</co
                             <div class="mt-2 relative">
                                 <pre><code class="language-bash">cd /home/
 ls  # 电脑将输出当前文件夹中的所有目录名和文件名
-mkdir -p ubuntu/wrfd/wrf_dependencies  # 直接创建所需依赖环境的保存目录</code></pre>
+mkdir -p ubuntu/wrfd/wrf_dependencies  # 直接创建所需依赖环境的保存目录
+cd /home/ubuntu</code></pre>
                             </div>
                         </details>
                     </div>
-                    
+
                     
                                         <div>
                         <p class="text-gray-700 dark:text-gray-300 mb-2">
-                            如果没有新建文件夹的权限，需要使用“sudo passwd”来为超级管理员设置新密码（需要输入两遍相同密码）。接着确保自己当前处于/home/ubuntu/目录下，在超级管理员身份下使用nano打开环境变量配置文件
+                            需要使用“sudo passwd”来为超级管理员设置新密码（需要输入两遍相同密码），接着使用“su”并输入刚才设定的密码进入超级管理员模式，确保自己当前处于/home/ubuntu/目录下，在超级管理员身份下使用nano打开环境变量配置文件，指令如下
                         </p>
                         <details class="mb-4">
                             <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -223,14 +247,14 @@ export JASPERINC=$DIR/grib2/include</code></pre>
                             </summary>
                             <div class="mt-2 relative">
                                 <pre><code class="language-bash">export CC=gcc
+export CC=gcc
 export CXX=g++
 export FC=gfortran
-export F77=gfortran
 export FCFLAGS="-m64 -fallow-argument-mismatch"
+export F77=gfortran
 export FFLAGS="-m64 -fallow-argument-mismatch"
 export LDFLAGS="-L$NETCDF/lib -L$DIR/grib2/lib"
-export CPPFLAGS="-I$NETCDF/include -I$DIR/grib2/include -fcommon"
-export LIBS="-lnetcdf -lz"</code></pre>
+export CPPFLAGS="-I$NETCDF/include -I$DIR/grib2/include -fcommon"</code></pre>
                             </div>
                         </details>
                     </div>
@@ -255,7 +279,7 @@ export LIBS="-lnetcdf -lz"</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/zlib-1.2.11.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/zlib-1.2.11.tar.gz
 tar -zxvf zlib-1.2.11.tar.gz
 cd zlib-1.2.11
 ./configure --prefix=$DIR/grib2
@@ -284,10 +308,10 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/hdf5-1_10_5.tar.gz
-tar -zxvf hdf5-1_10_11.tar.gz
-cd hdf5-hdf5-1_10_11
-./configure --prefix=$DIR/netcdf --enable-fortran --enable-shared --enable-hl
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/hdf5-1_10_5.tar.gz
+tar -zxvf hdf5-1_10_5.tar.gz
+cd hdf5-hdf5-1_10_5
+./configure --prefix=$DIR/netcdf --with-zlib=$DIR/grib2 --enable-fortran --enable-shared
 make -j 4
 make install
 cd ..</code></pre>
@@ -313,10 +337,10 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/netcdf-c-v4.7.2.tar.gz
-tar -zxvf v4.7.2.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/netcdf-c-v4.7.2.tar.gz
+tar -zxvf netcdf-c-v4.7.2.tar.gz
 cd netcdf-c-4.7.2
-./configure --prefix=$DIR/netcdf --disable-dap --enable-shared
+./configure --prefix=$DIR/netcdf --disable-dap --enable-hdf5 --enable-shared
 make -j 4
 make install
 cd ..</code></pre>
@@ -342,8 +366,8 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/netcdf-fortran-4.5.2.tar.gz
-tar -zxvf v4.5.2.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/netcdf-fortran-4.5.2.tar.gz
+tar -zxvf netcdf-fortran-4.5.2.tar.gz
 cd netcdf-fortran-4.5.2
 ./configure --prefix=$DIR/netcdf --enable-shared
 make -j 4
@@ -371,7 +395,7 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/mpich-3.0.4.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/mpich-3.0.4.tar.gz
 tar -zxvf mpich-3.0.4.tar.gz
 cd mpich-3.0.4
 ./configure --prefix=$DIR/mpich
@@ -400,7 +424,7 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/libpng-1.2.50.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/libpng-1.2.50.tar.gz
 tar -zxvf libpng-1.2.50.tar.gz
 cd libpng-1.2.50
 ./configure --prefix=$DIR/grib2
@@ -429,7 +453,7 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/jasper-1.900.1.tar.gz
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/jasper-1.900.1.tar.gz
 tar -zxvf jasper-1.900.1.tar.gz
 cd jasper-1.900.1
 ./configure --prefix=$DIR/grib2
@@ -440,11 +464,13 @@ cd ..</code></pre>
                 </details>
             </section>
 
-            <!-- WRF / WPS 部分 -->
+            </section>
+
+            <!-- 换页 部分 -->
             <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-                <h2 class="text-2xl font-bold text-indigo-500 mb-4">8️⃣ WRF / WPS</h2>
+                <h2 class="text-2xl font-bold text-indigo-500 mb-4">8️⃣ 最终配置</h2>
                 <p class="text-gray-700 dark:text-gray-300">
-                    <code>WRF</code>4.7.1
+		打开一个新的终端窗口，并关闭之前的终端窗口，对于服务器则是建立新的连接窗口即可。在新的窗口中同本文最前面所述一样，首先进入超级管理员模式，再用“nano ~/.bashrc”打开环境变量文件，检查以下内容是否仍在环境变量文件的最末尾：如果存在，则进入下一步编译WRF；如果没有，则需要重新粘贴进去
                 </p>
                 <details class="mt-4">
                     <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -458,7 +484,37 @@ cd ..</code></pre>
                         </div>
                     </summary>
                     <div class="mt-2 relative">
-                        <pre><code class="language-bash">https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
+                        <pre><code class="language-bash">DIR=/home/ubuntu/wrfd/wrf_dependencies
+export NETCDF=$DIR/netcdf
+export LD_LIBRARY_PATH=$NETCDF/lib:$DIR/grib2/lib
+export PATH=$NETCDF/bin:$DIR/mpich/bin:${PATH}
+export JASPERLIB=$DIR/grib2/lib
+export JASPERINC=$DIR/grib2/include
+</code></pre>
+                    </div>
+                </details>
+<br>
+
+            <!-- WRF / WPS 部分 -->
+
+                <h2 class="text-2xl font-bold text-indigo-500 mb-4">WRF / WPS</h2>
+                <p class="text-gray-700 dark:text-gray-300">
+                    将上述环境变量指令加入环境变量文件末尾后，保存并退出，使用“source ~/.bashrc”配置环境变量文件生效。接下来编译WRF本身，建议<code>WRF</code>4.7.1
+                </p>
+                <details class="mt-4">
+                    <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+                        <span>点击展开代码</span>
+                        <div class="flex space-x-2">
+                            <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" />
+                                </svg>
+                            </button>
+                        </div>
+                    </summary>
+                    <div class="mt-2 relative">
+                        <pre><code class="language-bash">wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
+tar -zxvf WRF-v4.7.1.tar.gz
 cd WRFV4.7.1
 ./configure   # (执行后有两个配置选项，分别输入 34 和 1)
 ./compile em_real -j 4 >& log &
@@ -466,7 +522,8 @@ tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..
 
 
-https://mirror.learnin.icu/WPS-master.zip
+wget https://mirror.learnin.icu/WPS-master.zip
+unzip WPS-master.zip
 cd WPS-master
 export WRF_DIR=/home/ubuntu/WRFV4.7.1
 ./configure   # (选 1)
