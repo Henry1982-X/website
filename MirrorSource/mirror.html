@@ -466,9 +466,9 @@ tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..
 wget https://www.learnin.icu/MirrorSource/WPS-master.zip
 cd WPS-master
-export WRF_DIR=/home/ubuntu/wrfd/wrf_dependencies/WRF
+export WRF_DIR=/home/ubuntu/WRFV4.7.1
 ./configure   # (选 1)
-./compile >& log.compile &
+./compile >& log &
 tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..</code></pre>
                     </div>
