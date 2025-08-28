@@ -61,43 +61,149 @@
             font-size: 0.875rem; /* 减小代码字体大小以提高可读性 */
             line-height: 1.5;
         }
+
+        /* Language Toggle Switch */
+        .language-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4F46E5; /* Indigo-600 */
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #4F46E5;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(36px);
+            -ms-transform: translateX(36px);
+            transform: translateX(36px);
+        }
+
+        .slider-text {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        .slider-text span {
+            transition: opacity 0.4s ease-in-out;
+        }
+        .slider-text .zh-label {
+            opacity: 1;
+            color: white;
+        }
+        .slider-text .en-label {
+            opacity: 0;
+            color: #ffffff; /* 确保英文标签在未选中时是白色，选中时透明 */
+        }
+        input:checked + .slider .zh-label {
+            opacity: 0;
+        }
+        input:checked + .slider .en-label {
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-500">
+<div class="language-toggle">
+    <label class="toggle-switch">
+        <input type="checkbox" id="languageToggle">
+        <span class="slider round">
+            <div class="slider-text">
+                <span class="zh-label">ZH</span>
+                <span class="en-label">EN</span>
+            </div>
+        </span>
+    </label>
+</div>
+
 <div class="container mx-auto p-4 md:p-8">
 <!-- 头部部分 -->
 <header class="bg-white dark:bg-gray-800 p-6 md:p-10 rounded-xl shadow-lg mb-8 text-center">
-<h1 class="text-3xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">WRF 编译指南（稳定版）（镜像源下载渠道）</h1>
-<p class="text-gray-500 dark:text-gray-400 text-lg">简化、优化并加速你的 WRF 编译流程</p>
+<h1 class="text-3xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2" data-lang-key="header_title">WRF 编译指南（稳定版）（镜像源下载渠道）</h1>
+<p class="text-gray-500 dark:text-gray-400 text-lg" data-lang-key="header_subtitle">简化、优化并加速你的 WRF 编译流程</p>
 </header>
 <!-- 主要内容部分 -->
 <main class="space-y-8">
 <!-- 简介部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">前言</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="intro_title">前言</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="intro_p1">
                     本指南旨在提供一个基于ubuntu24系统（本地或服务器平台）的稳定版 WRF 编译流程。
-                    本指南使用镜像网站渠道下载基础依赖库，以避免无法使用git的问题。当然你也可以参考另一篇指南（<a href="official.html"><font color="green">官方下载渠道编译指南</font></a>），直接从git进行下载。
+                    本指南使用镜像网站渠道下载基础依赖库，以避免无法使用git的问题。当然你也可以参考另一篇指南（<a href="official.html"><font color="green" data-lang-key="intro_link1_text">官方下载渠道编译指南</font></a>），直接从git进行下载。
                 </p><br/>
-<p>声明：本网页参考的原始网页为“<a href="https://forum.mmm.ucar.edu/threads/full-wrf-and-wps-installation-example-gnu.12385/" target="_blank"><font color="green">原始教程网页</font></a>”</p><br/>
-<p>备注：如果希望直接下载镜像依赖库，自行上传至服务器编译，可以打开这个网页进行下载“<a href="MirrorSource.html" target="_blank"><font color="green">依赖库镜像下载源</font></a>”</p>
+<p data-lang-key="intro_p2">声明：本网页参考的原始网页为“<a href="https://forum.mmm.ucar.edu/threads/full-wrf-and-wps-installation-example-gnu.12385/" target="_blank"><font color="green" data-lang-key="intro_link2_text">原始教程网页</font></a>”</p><br/>
+<p data-lang-key="intro_p3">备注：如果希望直接下载镜像依赖库，自行上传至服务器编译，可以打开这个网页进行下载“<a href="MirrorSource.html" target="_blank"><font color="green" data-lang-key="intro_link3_text">依赖库镜像下载源</font></a>”</p>
 </section>
 <!-- 准备工作和设置 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">准备工作</h2>
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="prep_title">准备工作</h2>
 <div class="space-y-6">
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p1">
                             首先，对于全新ubuntu24 系统，你需要更新原始库和依赖项，并安装基础的编译工具和依赖项（此过程中可能会出现一个紫色背景的选项界面，请直接回车确认，无需选择其他项）
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>更新并安装依赖</span>
+<span data-lang-key="prep_details1_summary">更新并安装依赖</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg><span class="copy-label">一键复制</span>
+</svg><span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -110,17 +216,17 @@ openmpi-bin libopenmpi-dev curl wget unzip tcsh cmake libxml2-dev pkg-config</co
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p2">
                             为超级管理员配置密码
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>配置超级管理员密码</span>
+<span data-lang-key="prep_details2_summary">配置超级管理员密码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg><span class="copy-label">一键复制</span>
+</svg><span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -131,42 +237,42 @@ su  # 这个指令将进入超级管理员模式，你需要输入刚才设定�
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p3">
                             创建工作目录并设置环境变量
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>配置工作目录</span>
+<span data-lang-key="prep_details3_summary">配置工作目录</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
 <div class="mt-2 relative">
 <pre><code class="language-bash">cd /home/
-ls  # 电脑将输出当前文件夹中的所有目录名和文件名
-mkdir -p ubuntu/wrfd/wrf_dependencies  # 直接创建所需依赖环境的保存目录
+ls
+mkdir -p ubuntu/wrfd/wrf_dependencies
 cd /home/ubuntu/</code></pre>
 </div>
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p4">
                             需要使用“sudo passwd”来为超级管理员设置新密码（需要输入两遍相同密码），接着使用“su”并输入刚才设定的密码进入超级管理员模式，确保自己当前处于/home/ubuntu/目录下，在超级管理员身份下使用nano打开环境变量配置文件，指令如下
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>打开环境变量配置文件</span>
+<span data-lang-key="prep_details4_summary">打开环境变量配置文件</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -176,18 +282,18 @@ cd /home/ubuntu/</code></pre>
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p5">
                             将以下内容全部复制粘贴到.bshrc文件的最末尾
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>末尾添加新环境变量</span>
+<span data-lang-key="prep_details5_summary">末尾添加新环境变量</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -202,18 +308,18 @@ export JASPERINC=$DIR/grib2/include</code></pre>
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p6">
                             使用快捷键“Ctrl+x”退出 .bashrc文件，根据要求输入“y”并点击回车即可。退出文件后，输入以下指令并执行
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>保存并退出</span>
+<span data-lang-key="prep_details6_summary">保存并退出</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -223,18 +329,18 @@ export JASPERINC=$DIR/grib2/include</code></pre>
 </details>
 </div>
 <div>
-<p class="text-gray-700 dark:text-gray-300 mb-2">
+<p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p7">
                             将以下内容直接复制到终端中并执行，配置仅在当前终端窗口中适用的临时环境变量，用于编译WRF，不影响后续WRF的核心运算
                         </p>
 <details class="mb-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>配置额外的临时环境变量</span>
+<span data-lang-key="prep_details7_summary">配置额外的临时环境变量</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -255,19 +361,19 @@ export CPPFLAGS="-I$NETCDF/include -I$DIR/grib2/include -fcommon"</code></pre>
 </section>
 <!-- ZLIB 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">1️⃣ ZLIB (基础依赖)</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="zlib_title">1️⃣ ZLIB (基础依赖)</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="zlib_p1">
                     建议使用稳定版 <code>1.2.11</code>
 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -284,19 +390,19 @@ cd ..</code></pre>
 </section>
 <!-- HDF5 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">2️⃣ HDF5</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="hdf5_title">2️⃣ HDF5</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="hdf5_p1">
                     建议 <code>1.10.5</code>
 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -313,19 +419,19 @@ cd ..</code></pre>
 </section>
 <!-- NetCDF-C 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">3️⃣ NetCDF-C</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="netcdfc_title">3️⃣ NetCDF-C</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="netcdfc_p1">
                     建议 <code>4.7.2</code>
 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -342,19 +448,19 @@ cd ..</code></pre>
 </section>
 <!-- NetCDF-Fortran 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">4️⃣ NetCDF-Fortran</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="netcdff_title">4️⃣ NetCDF-Fortran</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="netcdff_p1">
 <code>4.5.2</code> 版本即可
                 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -372,19 +478,19 @@ cd ..</code></pre>
 </section>
 <!-- MPI 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">5️⃣ MPI</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="mpi_title">5️⃣ MPI</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="mpi_p1">
                     建议 <code>MPICH 3.0.4</code>
 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -401,19 +507,19 @@ cd ..</code></pre>
 </section>
 <!-- LibPNG 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">6️⃣ LibPNG</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="libpng_title">6️⃣ LibPNG</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="libpng_p1">
                     建议 <code>1.2.50</code> 版本(LTS 稳定版)。
                 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -430,19 +536,19 @@ cd ..</code></pre>
 </section>
 <!-- Jasper 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">7️⃣ Jasper</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="jasper_title">7️⃣ Jasper</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="jasper_p1">
                     建议 <code>jasper-1.900.1</code>。
                 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -460,19 +566,19 @@ cd ..</code></pre>
 
 <!-- 换页 部分 -->
 <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">8️⃣ 最终配置</h2>
-<p class="text-gray-700 dark:text-gray-300">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="final_config_title">8️⃣ 最终配置</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="final_config_p1">
 		打开一个新的终端窗口，并关闭之前的终端窗口，对于服务器则是建立新的连接窗口即可。在新的窗口中同本文最前面所述一样，首先进入超级管理员模式，再用“nano ~/.bashrc”打开环境变量文件，检查以下内容是否仍在环境变量文件的最末尾：如果存在，则进入下一步编译WRF；如果没有，则需要重新粘贴进去
                 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 <div class="flex space-x-2">
 <button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="copy-label">一键复制</span>
+<span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
 </button>
 </div>
 </summary>
@@ -488,13 +594,13 @@ export JASPERINC=$DIR/grib2/include
 </details>
 <br/>
 <!-- WRF / WPS 部分 -->
-<h2 class="text-2xl font-bold text-indigo-500 mb-4">WRF & WPS</h2>
-<p class="text-gray-700 dark:text-gray-300">
-                    将上述环境变量指令加入环境变量文件末尾后，保存并退出，使用“source ~/.bashrc”配置环境变量文件生效。接下来编译WRF本身，建议<code>WRF</code>4.7.1。<br><br><font color="red">注意：以下指令内容请逐行复制执行</font>
+<h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="wrf_wps_title">WRF & WPS</h2>
+<p class="text-gray-700 dark:text-gray-300" data-lang-key="wrf_wps_p1">
+                    将上述环境变量指令加入环境变量文件末尾后，保存并退出，使用“source ~/.bashrc”配置环境变量文件生效。接下来编译WRF本身，建议<code>WRF</code>4.7.1。<br><br><font color="red" data-lang-key="wrf_wps_note">注意：以下指令内容请逐行复制执行</font>
                 </p>
 <details class="mt-4">
 <summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-<span>点击展开代码</span>
+<span data-lang-key="details_expand_code">点击展开代码</span>
 
 </summary>
 <div class="mt-2 relative">
@@ -518,14 +624,157 @@ cd ..
 
 
 
-<font color="red"># 如果发现在WRF下的./configure过程无法正常编译，报错找不到NETCDF路径，<br>请检查环境变量~/.bashrc中末尾的自定义环境变量是否还存在，<br>若不存在，请重新粘贴一份进去后保存并退出，<br>使用“source ~/.bashrc”更新配置环境变量，<br>最后再在WRF文件根目录下尝试./configure</font></code></pre>
+<font color="red" data-lang-key="wrf_wps_troubleshoot"># 如果发现在WRF下的./configure过程无法正常编译，报错找不到NETCDF路径，<br>请检查环境变量~/.bashrc中末尾的自定义环境变量是否还存在，<br>若不存在，请重新粘贴一份进去后保存并退出，<br>使用“source ~/.bashrc”更新配置环境变量，<br>最后再在WRF文件根目录下尝试./configure</font></code></pre>
 </div>
 </details>
 </section>
 </main>
 </div>
-<!-- JavaScript to handle copy functionality -->
+<!-- JavaScript to handle copy functionality and language toggle -->
 <script>
+        // 定义中文和英文的翻译文本
+        const translations = {
+            zh: {
+                header_title: "WRF 编译指南（稳定版）（镜像源下载渠道）",
+                header_subtitle: "简化、优化并加速你的 WRF 编译流程",
+                intro_title: "前言",
+                intro_p1: '本指南旨在提供一个基于ubuntu24系统（本地或服务器平台）的稳定版 WRF 编译流程。本指南使用镜像网站渠道下载基础依赖库，以避免无法使用git的问题。当然你也可以参考另一篇指南（<a href="official.html"><font color="green">官方下载渠道编译指南</font></a>），直接从git进行下载。',
+                intro_link1_text: "官方下载渠道编译指南",
+                intro_p2: '声明：本网页参考的原始网页为“<a href="https://forum.mmm.ucar.edu/threads/full-wrf-and-wps-installation-example-gnu.12385/" target="_blank"><font color="green">原始教程网页</font></a>”',
+                intro_link2_text: "原始教程网页",
+                intro_p3: '备注：如果希望直接下载镜像依赖库，自行上传至服务器编译，可以打开这个网页进行下载“<a href="MirrorSource.html" target="_blank"><font color="green">依赖库镜像下载源</font></a>”',
+                intro_link3_text: "依赖库镜像下载源",
+                prep_title: "准备工作",
+                prep_p1: "首先，对于全新ubuntu24 系统，你需要更新原始库和依赖项，并安装基础的编译工具和依赖项（此过程中可能会出现一个紫色背景的选项界面，请直接回车确认，无需选择其他项）",
+                prep_details1_summary: "更新并安装依赖",
+                prep_p2: "为超级管理员配置密码",
+                prep_details2_summary: "配置超级管理员密码",
+                prep_p3: "创建工作目录并设置环境变量",
+                prep_details3_summary: "配置工作目录",
+                prep_p4: "需要使用“sudo passwd”来为超级管理员设置新密码（需要输入两遍相同密码），接着使用“su”并输入刚才设定的密码进入超级管理员模式，确保自己当前处于/home/ubuntu/目录下，在超级管理员身份下使用nano打开环境变量配置文件，指令如下",
+                prep_details4_summary: "打开环境变量配置文件",
+                prep_p5: "将以下内容全部复制粘贴到.bshrc文件的最末尾",
+                prep_details5_summary: "末尾添加新环境变量",
+                prep_p6: "使用快捷键“Ctrl+x”退出 .bashrc文件，根据要求输入“y”并点击回车即可。退出文件后，输入以下指令并执行",
+                prep_details6_summary: "保存并退出",
+                prep_p7: "将以下内容直接复制到终端中并执行，配置仅在当前终端窗口中适用的临时环境变量，用于编译WRF，不影响后续WRF的核心运算",
+                prep_details7_summary: "配置额外的临时环境变量",
+                zlib_title: "1️⃣ ZLIB (基础依赖)",
+                zlib_p1: "建议使用稳定版 <code>1.2.11</code>",
+                hdf5_title: "2️⃣ HDF5",
+                hdf5_p1: "建议 <code>1.10.5</code>",
+                netcdfc_title: "3️⃣ NetCDF-C",
+                netcdfc_p1: "建议 <code>4.7.2</code>",
+                netcdff_title: "4️⃣ NetCDF-Fortran",
+                netcdff_p1: "<code>4.5.2</code> 版本即可",
+                mpi_title: "5️⃣ MPI",
+                mpi_p1: "建议 <code>MPICH 3.0.4</code>",
+                libpng_title: "6️⃣ LibPNG",
+                libpng_p1: "建议 <code>1.2.50</code> 版本(LTS 稳定版)。",
+                jasper_title: "7️⃣ Jasper",
+                jasper_p1: "建议 <code>jasper-1.900.1</code>。",
+                final_config_title: "8️⃣ 最终配置",
+                final_config_p1: "打开一个新的终端窗口，并关闭之前的终端窗口，对于服务器则是建立新的连接窗口即可。在新的窗口中同本文最前面所述一样，首先进入超级管理员模式，再用“nano ~/.bashrc”打开环境变量文件，检查以下内容是否仍在环境变量文件的最末尾：如果存在，则进入下一步编译WRF；如果没有，则需要重新粘贴进去",
+                wrf_wps_title: "WRF & WPS",
+                wrf_wps_p1: '将上述环境变量指令加入环境变量文件末尾后，保存并退出，使用“source ~/.bashrc”配置环境变量文件生效。接下来编译WRF本身，建议<code>WRF</code>4.7.1。<br><br><font color="red">注意：以下指令内容请逐行复制执行</font>',
+                wrf_wps_note: "注意：以下指令内容请逐行复制执行",
+                wrf_wps_troubleshoot: '# 如果发现在WRF下的./configure过程无法正常编译，报错找不到NETCDF路径，<br>请检查环境变量~/.bashrc中末尾的自定义环境变量是否还存在，<br>若不存在，请重新粘贴一份进去后保存并退出，<br>使用“source ~/.bashrc”更新配置环境变量，<br>最后再在WRF文件根目录下尝试./configure',
+                copy_button_text: "一键复制",
+                details_expand_code: "点击展开代码"
+            },
+            en: {
+                header_title: "WRF Compilation Guide (Stable) (Mirror Source Download Channel)",
+                header_subtitle: "Simplify, optimize, and accelerate your WRF compilation process",
+                intro_title: "Foreword",
+                intro_p1: 'This guide aims to provide a stable WRF compilation process based on Ubuntu 24 system (local or server platform). This guide uses a mirror website channel to download basic dependency libraries to avoid issues with git. Of course, you can also refer to another guide (<a href="official.html"><font color="green">Official Download Channel Compilation Guide</font></a>) to download directly from git.',
+                intro_link1_text: "Official Download Channel Compilation Guide",
+                intro_p2: 'Disclaimer: This webpage refers to the original tutorial page "<a href="https://forum.mmm.ucar.edu/threads/full-wrf-and-wps-installation-example-gnu.12385/" target="_blank"><font color="green">Original Tutorial Page</font></a>"',
+                intro_link2_text: "Original Tutorial Page",
+                intro_p3: 'Note: If you wish to directly download mirror dependency libraries and upload them to the server for compilation, you can open this webpage to download them: "<a href="MirrorSource.html" target="_blank"><font color="green">Dependency Library Mirror Download Source</font></a>"',
+                intro_link3_text: "Dependency Library Mirror Download Source",
+                prep_title: "Preparation",
+                prep_p1: "First, for a fresh Ubuntu 24 system, you need to update original libraries and dependencies, and install basic compilation tools and dependencies (during this process, a purple option interface may appear; please press Enter to confirm directly, no need to select other options)",
+                prep_details1_summary: "Update and Install Dependencies",
+                prep_p2: "Configure password for superuser",
+                prep_details2_summary: "Configure Superuser Password",
+                prep_p3: "Create a working directory and set environment variables",
+                prep_details3_summary: "Configure Working Directory",
+                prep_p4: "You need to use \"sudo passwd\" to set a new password for the superuser (you need to enter the same password twice). Then, use \"su\" and enter the password you just set to enter superuser mode. Make sure you are currently in the /home/ubuntu/ directory. As a superuser, use nano to open the environment variable configuration file with the following command:",
+                prep_details4_summary: "Open Environment Variable Configuration File",
+                prep_p5: "Copy and paste all the following content to the end of the .bashrc file",
+                prep_details5_summary: "Add New Environment Variables to the End",
+                prep_p6: "Use the shortcut \"Ctrl+x\" to exit the .bashrc file. Enter \"y\" and press Enter as prompted. After exiting the file, enter and execute the following command",
+                prep_details6_summary: "Save and Exit",
+                prep_p7: "Copy and paste the following content directly into the terminal and execute it to configure temporary environment variables that are only applicable in the current terminal window for WRF compilation, without affecting subsequent core WRF operations.",
+                prep_details7_summary: "Configure Additional Temporary Environment Variables",
+                zlib_title: "1️⃣ ZLIB (Basic Dependency)",
+                zlib_p1: "Recommended stable version <code>1.2.11</code>",
+                hdf5_title: "2️⃣ HDF5",
+                hdf5_p1: "Recommended <code>1.10.5</code>",
+                netcdfc_title: "3️⃣ NetCDF-C",
+                netcdfc_p1: "Recommended <code>4.7.2</code>",
+                netcdff_title: "4️⃣ NetCDF-Fortran",
+                netcdff_p1: "Version <code>4.5.2</code> is sufficient",
+                mpi_title: "5️⃣ MPI",
+                mpi_p1: "Recommended <code>MPICH 3.0.4</code>",
+                libpng_title: "6️⃣ LibPNG",
+                libpng_p1: "Recommended version <code>1.2.50</code> (LTS stable version).",
+                jasper_title: "7️⃣ Jasper",
+                jasper_p1: "Recommended <code>jasper-1.900.1</code>.",
+                final_config_title: "8️⃣ Final Configuration",
+                final_config_p1: "Open a new terminal window and close the previous one; for a server, simply establish a new connection. In the new window, as described at the beginning of this document, first enter superuser mode, then use \"nano ~/.bashrc\" to open the environment variable file and check if the following content is still at the end of the environment variable file: if it exists, proceed to compile WRF; if not, you need to paste it in again.",
+                wrf_wps_title: "WRF & WPS",
+                wrf_wps_p1: 'After adding the above environment variable commands to the end of the environment variable file, save and exit. Use “source ~/.bashrc” to make the environment variable file effective. Next, compile WRF itself, <code>WRF</code> 4.7.1 is recommended.<br><br><font color="red">Note: Please copy and execute the following commands line by line</font>',
+                wrf_wps_note: "Note: Please copy and execute the following commands line by line",
+                wrf_wps_troubleshoot: '# If you find that the ./configure process under WRF cannot compile normally, reporting that the NETCDF path cannot be found,<br>please check whether the custom environment variables at the end of ~/.bashrc still exist.<br>If they do not exist, please paste a new copy, save and exit,<br>use "source ~/.bashrc" to update the configured environment variables,<br>and finally try ./configure in the WRF file root directory.',
+                copy_button_text: "Copy",
+                details_expand_code: "Click to expand code"
+            }
+        };
+
+        // 获取语言切换按钮
+        const languageToggle = document.getElementById('languageToggle');
+
+        // 首次加载时设置语言，默认为中文
+        let currentLang = localStorage.getItem('lang') || 'zh';
+        if (currentLang === 'en') {
+            languageToggle.checked = true;
+            document.documentElement.lang = 'en';
+        } else {
+            languageToggle.checked = false;
+            document.documentElement.lang = 'zh';
+        }
+        updateContent(currentLang);
+
+
+        // 语言切换事件监听器
+        languageToggle.addEventListener('change', (event) => {
+            currentLang = event.target.checked ? 'en' : 'zh';
+            localStorage.setItem('lang', currentLang); // 保存用户选择的语言
+            document.documentElement.lang = currentLang; // 更新html lang属性
+            updateContent(currentLang);
+        });
+
+        // 根据当前语言更新页面内容
+        function updateContent(lang) {
+            // 更新标题
+            document.title = translations[lang].header_title.split('（')[0].replace('WRF Compilation Guide', 'WRF Compilation Guide');
+
+            // 遍历所有带有 data-lang-key 属性的元素
+            document.querySelectorAll('[data-lang-key]').forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                if (translations[lang][key]) {
+                    // 对于链接的文本，需要特殊处理，因为其中包含 <font> 标签
+                    if (key.startsWith('intro_link')) {
+                        element.innerHTML = translations[lang][key];
+                    } else {
+                        element.innerHTML = translations[lang][key];
+                    }
+                }
+            });
+        }
+
+
         // 等待 DOM 内容完全加载后再添加事件监听器
         document.addEventListener('DOMContentLoaded', () => {
             const copyButtons = document.querySelectorAll('.copy-btn');
