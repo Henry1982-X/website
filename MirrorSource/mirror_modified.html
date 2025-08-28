@@ -1,0 +1,580 @@
+<!--
+这是一个用于优化 WRF 编译过程的综合性交互式指南。
+它使用 Tailwind CSS 构建，设计简洁现代。
+代码块是可交互的，允许用户展开和折叠，并提供“复制”按钮，方便使用。
+-->
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WRF 编译指南</title>
+<!-- 使用现代、可读性强的字体 -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- 从 CDN 加载 Tailwind CSS 以进行实用优先的样式设计 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+        /* 自定义 body 和排版样式 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        /* details/summary 元素的样式，使其看起来整洁 */
+        summary {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #e5e7eb;
+            transition: background-color 0.2s ease-in-out;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary:hover {
+            background-color: #d1d5db;
+        }
+        
+        /* 隐藏 details 默认的箭头 */
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        /* 代码块的样式 */
+        pre {
+            background-color: #1f2937; /* 代码的深色背景 */
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        code {
+            font-size: 0.875rem; /* 减小代码字体大小以提高可读性 */
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-500">
+<div class="container mx-auto p-4 md:p-8">
+<!-- 头部部分 -->
+<header class="bg-white dark:bg-gray-800 p-6 md:p-10 rounded-xl shadow-lg mb-8 text-center">
+<h1 class="text-3xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">WRF 编译指南（稳定版）</h1>
+<p class="text-gray-500 dark:text-gray-400 text-lg">简化、优化并加速你的 WRF 编译流程</p>
+</header>
+<!-- 主要内容部分 -->
+<main class="space-y-8">
+<!-- 简介部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">前言</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    本指南旨在提供一个基于ubuntu24系统（本地或服务器平台）的稳定版 WRF 编译流程。
+                    本指南使用镜像网站渠道下载基础依赖库，以避免无法使用git的问题。当然你也可以参考另一篇指南（<a href="official.html">官方下载渠道</a>），直接从git进行下载。
+                </p><br/>
+<p>声明：本网页参考的原始网页为“<a href="https://forum.mmm.ucar.edu/threads/full-wrf-and-wps-installation-example-gnu.12385/" target="_blank"><font color="green">原始教程网页</font></a>”</p><br/>
+<p>备注：如果希望直接下载镜像依赖库，自行上传至服务器编译，可以打开这个网页进行下载“<a href="MirrorSource.html" target="_blank"><font color="green">依赖库镜像下载源</font></a>”</p>
+</section>
+<!-- 准备工作和设置 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">准备工作</h2>
+<div class="space-y-6">
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            首先，对于全新ubuntu24 系统，你需要更新原始库和依赖项，并安装基础的编译工具和依赖项（此过程中可能会出现一个紫色背景的选项界面，请直接回车确认，无需选择其他项）
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>更新并安装依赖</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg><span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">sudo apt-get -y update
+sudo apt-get -y upgrade
+sudo apt-get install -y build-essential gcc gfortran g++ m4 binutils libcurl4-openssl-dev \
+openmpi-bin libopenmpi-dev curl wget unzip tcsh cmake libxml2-dev pkg-config</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            为超级管理员配置密码
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>配置超级管理员密码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg><span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">sudo passwd  # 需要输入自定义的密码两次
+su  # 这个指令将进入超级管理员模式，你需要输入刚才设定的密码并回车</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            创建工作目录并设置环境变量
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>配置工作目录</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">cd /home/
+ls  # 电脑将输出当前文件夹中的所有目录名和文件名
+mkdir -p ubuntu/wrfd/wrf_dependencies  # 直接创建所需依赖环境的保存目录
+cd /home/ubuntu</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            需要使用“sudo passwd”来为超级管理员设置新密码（需要输入两遍相同密码），接着使用“su”并输入刚才设定的密码进入超级管理员模式，确保自己当前处于/home/ubuntu/目录下，在超级管理员身份下使用nano打开环境变量配置文件，指令如下
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>打开环境变量配置文件</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">nano ~/.bashrc  # 打开环境变量文件</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            将以下内容全部复制粘贴到.bshrc文件的最末尾
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>末尾添加新环境变量</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">DIR=/home/ubuntu/wrfd/wrf_dependencies
+export NETCDF=$DIR/netcdf
+export LD_LIBRARY_PATH=$NETCDF/lib:$DIR/grib2/lib
+export PATH=$NETCDF/bin:$DIR/mpich/bin:${PATH}
+export JASPERLIB=$DIR/grib2/lib
+export JASPERINC=$DIR/grib2/include</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            使用快捷键“Ctrl+x”退出 .bashrc文件，根据要求输入“y”并点击回车即可。退出文件后，输入以下指令并执行
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>保存并退出</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">source ~/.bashrc</code></pre>
+</div>
+</details>
+</div>
+<div>
+<p class="text-gray-700 dark:text-gray-300 mb-2">
+                            将以下内容直接复制到终端中并执行，配置仅在当前终端窗口中适用的临时环境变量，用于编译WRF，不影响后续WRF的核心运算
+                        </p>
+<details class="mb-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>配置额外的临时环境变量</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">export CC=gcc
+export CC=gcc
+export CXX=g++
+export FC=gfortran
+export FCFLAGS="-m64 -fallow-argument-mismatch"
+export F77=gfortran
+export FFLAGS="-m64 -fallow-argument-mismatch"
+export LDFLAGS="-L$NETCDF/lib -L$DIR/grib2/lib"
+export CPPFLAGS="-I$NETCDF/include -I$DIR/grib2/include -fcommon"</code></pre>
+</div>
+</details>
+</div>
+</div>
+</section>
+<!-- ZLIB 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">1️⃣ ZLIB (基础依赖)</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议使用稳定版 <code>1.2.11</code>
+</p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/zlib-1.2.11.tar.gz
+tar -zxvf zlib-1.2.11.tar.gz
+cd zlib-1.2.11
+./configure --prefix=$DIR/grib2
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- HDF5 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">2️⃣ HDF5</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议 <code>1.10.5</code>
+</p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/hdf5-1_10_5.tar.gz
+tar -zxvf hdf5-1_10_5.tar.gz
+cd hdf5-hdf5-1_10_5
+./configure --prefix=$DIR/netcdf --with-zlib=$DIR/grib2 --enable-fortran --enable-shared
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- NetCDF-C 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">3️⃣ NetCDF-C</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议 <code>4.7.2</code>
+</p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/netcdf-c-v4.7.2.tar.gz
+tar -zxvf netcdf-c-v4.7.2.tar.gz
+cd netcdf-c-4.7.2
+./configure --prefix=$DIR/netcdf --disable-dap --enable-hdf5 --enable-shared
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- NetCDF-Fortran 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">4️⃣ NetCDF-Fortran</h2>
+<p class="text-gray-700 dark:text-gray-300">
+<code>4.5.2</code> 版本即可
+                </p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/netcdf-fortran-4.5.2.tar.gz
+tar -zxvf netcdf-fortran-4.5.2.tar.gz
+cd netcdf-fortran-4.5.2
+./configure --prefix=$DIR/netcdf --enable-shared
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- MPI 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">5️⃣ MPI</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议 <code>MPICH 3.0.4</code>
+</p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/mpich-3.0.4.tar.gz
+tar -zxvf mpich-3.0.4.tar.gz
+cd mpich-3.0.4
+./configure --prefix=$DIR/mpich
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- LibPNG 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">6️⃣ LibPNG</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议 <code>1.2.50</code> 版本(LTS 稳定版)。
+                </p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/libpng-1.2.50.tar.gz
+tar -zxvf libpng-1.2.50.tar.gz
+cd libpng-1.2.50
+./configure --prefix=$DIR/grib2
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+<!-- Jasper 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">7️⃣ Jasper</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    建议 <code>jasper-1.900.1</code> (最后一个 1.900.x 系列，兼容 WRF)。
+                </p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/jasper-1.900.1.tar.gz
+tar -zxvf jasper-1.900.1.tar.gz
+cd jasper-1.900.1
+./configure --prefix=$DIR/grib2
+make -j 4
+make install
+cd ..</code></pre>
+</div>
+</details>
+</section>
+
+<!-- 换页 部分 -->
+<section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">8️⃣ 最终配置</h2>
+<p class="text-gray-700 dark:text-gray-300">
+		打开一个新的终端窗口，并关闭之前的终端窗口，对于服务器则是建立新的连接窗口即可。在新的窗口中同本文最前面所述一样，首先进入超级管理员模式，再用“nano ~/.bashrc”打开环境变量文件，检查以下内容是否仍在环境变量文件的最末尾：如果存在，则进入下一步编译WRF；如果没有，则需要重新粘贴进去
+                </p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+<div class="flex space-x-2">
+<button class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200" title="复制到剪贴板">
+<svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="copy-label">一键复制</span>
+</button>
+</div>
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">DIR=/home/ubuntu/wrfd/wrf_dependencies
+export NETCDF=$DIR/netcdf
+export LD_LIBRARY_PATH=$NETCDF/lib:$DIR/grib2/lib
+export PATH=$NETCDF/bin:$DIR/mpich/bin:${PATH}
+export JASPERLIB=$DIR/grib2/lib
+export JASPERINC=$DIR/grib2/include
+</code></pre>
+</div>
+</details>
+<br/>
+<!-- WRF / WPS 部分 -->
+<h2 class="text-2xl font-bold text-indigo-500 mb-4">WRF & WPS</h2>
+<p class="text-gray-700 dark:text-gray-300">
+                    将上述环境变量指令加入环境变量文件末尾后，保存并退出，使用“source ~/.bashrc”配置环境变量文件生效。接下来编译WRF本身，建议<code>WRF</code>4.7.1。<br><br><font color="red">注意：以下指令内容请逐行复制执行</font>
+                </p>
+<details class="mt-4">
+<summary class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+<span>点击展开代码</span>
+
+</summary>
+<div class="mt-2 relative">
+<pre><code class="language-bash">wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
+tar -zxvf WRF-v4.7.1.tar.gz
+cd WRFV4.7.1
+./configure   # (执行后有两个配置选项，分别输入 34 和 1)
+./compile em_real -j 4 &gt;&amp; log &amp;
+tail -f log  # 用来动态查看保存在log文件中的编译日志
+cd ..
+
+
+wget https://mirror.learnin.icu/WPS-master.zip
+unzip WPS-master.zip
+cd WPS-master
+export WRF_DIR=/home/ubuntu/WRFV4.7.1
+./configure   # (选 1)
+./compile &gt;&amp; log &amp;
+tail -f log  # 用来动态查看保存在log文件中的编译日志
+cd ..
+
+
+
+<font color="red"># 如果发现在WRF下的./configure过程无法正常编译，报错找不到NETCDF路径，<br>请检查环境变量~/.bashrc中末尾的自定义环境变量是否还存在，<br>若不存在，请重新粘贴一份进去后保存并退出，<br>使用“source ~/.bashrc”更新配置环境变量，<br>最后再在WRF文件根目录下尝试./configure</font></code></pre>
+</div>
+</details>
+</section>
+</main>
+</div>
+<!-- JavaScript to handle copy functionality -->
+<script>
+        // 等待 DOM 内容完全加载后再添加事件监听器
+        document.addEventListener('DOMContentLoaded', () => {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+
+            // 复制功能
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const preElement = button.closest('details').querySelector('pre');
+                    if (preElement) {
+                        const codeElement = preElement.querySelector('code');
+                        const codeText = codeElement.textContent;
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(codeText).then(() => {
+                                showCopiedFeedback(button);
+                            }).catch(err => {
+                                fallbackCopyTextToClipboard(codeText, button);
+                            });
+                        } else {
+                            fallbackCopyTextToClipboard(codeText, button);
+                        }
+                    }
+                });
+            });
+
+            // 回退复制函数
+            function fallbackCopyTextToClipboard(text, button) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopiedFeedback(button);
+                } catch (err) {
+                    console.error('回退方案：哎呀，无法复制', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            // 复制成功反馈
+            function showCopiedFeedback(button) {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
