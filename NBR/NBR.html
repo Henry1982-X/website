@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LEARN-IN-软件安装流程</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 900px; }
+
+        /* 保留你的原始 scrollbar 隐藏样式（对 content-wrapper 无影响） */
+        .image-container::-webkit-scrollbar { display: none; }
+        .image-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ---------- Modal & image display ---------- */
+        /* modal 覆盖整个视窗，避免父容器限制 */
+        #image-modal .modal-viewport { width: 100vw; height: 100vh; }
+
+        /* image-container 是 outer container（scroll 的元素），不做 flex 居中 image 本身，
+           我们用 content-wrapper 来处理居中逻辑（content-wrapper 内 display:flex 居中 image-inner） */
+        #image-container {
+            position: relative;
+            overflow: auto;
+            width: 100%;
+            height: 100%;
+            -webkit-overflow-scrolling: touch;
+            background: rgba(0,0,0,0);
+        }
+
+        /* content-wrapper 为 scrollable 的实际内容区，宽高由 JS 设置为 max(container, image) */
+        #content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        /* image-inner 为实际图片像素尺寸（按 baseW*scale / baseH*scale），img 填满 inner */
+        #image-inner { flex: 0 0 auto; display: block; }
+        #modal-image { display: block; width:100%; height:100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+
+        /* cursor */
+        #image-container.cursor-grab { cursor: grab; }
+        #image-container.cursor-grabbing { cursor: grabbing; }
+
+        /* 缩放百分比 HUD */
+        #scale-indicator {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            z-index: 60;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            user-select: none;
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header & Navigation (保持原样) -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-gray-900">软件安装与使用指南</a>
+            <ul class="flex space-x-6 text-sm font-medium text-gray-600">
+                <li><a href="#toc" class="hover:text-gray-900 transition duration-300">目录</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Main Content Section (保持原样) -->
+        <section class="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-4 text-gray-900">
+                NERO 21（NERO Burning ROM）刻录软件安装与刻录流程
+            </h1>
+            <p class="text-center text-gray-500 mb-8 max-w-2xl mx-auto">
+                这份指南将带您逐步完成软件的安装过程。请按照以下步骤操作，确保安装成功。<br>
+                （最后维护时间：2025-9-2）
+            </p>
+
+            <!-- 目录（保持原样） -->
+            <div id="toc" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">目录</h2>
+                <ul class="space-y-2 text-lg text-gray-600">
+                    <li><a href="#1" class="hover:text-blue-600 transition duration-300">1：下载安装包</a></li>
+                    <li><a href="#2" class="hover:text-blue-600 transition duration-300">2：开始安装</a></li>
+                    <li><a href="#3" class="hover:text-blue-600 transition duration-300">3：配置软件</a></li>
+                    <li><a href="#4.1" class="hover:text-blue-600 transition duration-300">4：刻录流程</a></li>
+                </ul>
+            </div>
+
+            <hr class="my-12 border-t-2 border-gray-200">
+
+            <!-- Steps（保持原样，只确保 onclick openModal） -->
+            <div class="space-y-16">
+                <div id="1" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/1.png')">
+                        <img src="img/1.png" alt="软件下载页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">1&nbsp;&nbsp;下载安装包</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;点击下方下载按钮，将直接下载镜像文件，当前下载版本兼容Win 11。
+                        </p>
+                        <a href="https://mirror.learnin.icu/NERO-Burning-ROM.zip" class="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300">点击此处下载</a>
+                    </div>
+                </div>
+
+                <hr class="border-t border-gray-200">
+
+                <div id="2" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/2.png')">
+                        <img src="img/2.png" alt="安装向导截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">2&nbsp;&nbsp;开始安装</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;解压上一步下载的zip压缩包后，将获得一个名为“NERO-Burning-ROM”的文件夹，该文件夹中包含四个文件。请先断开网络，双击Setup.exe进行安装。<font color="red">注意：请勿修改此软件的默认安装路径，否则后续操作将会失效。</font>
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="border-t border-gray-200">
+
+                <div id="3.1" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/3.jpg')">
+                        <img src="img/3.jpg" alt="安装路径选择截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">3.1&nbsp;&nbsp;配置破解</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;需要设置NERO的防火墙出站规则。使用快捷键“WIN+I”打开设置，搜索“防火墙”，打开“Windows Defender 防火墙”，点开左侧的“高级设置”，在高级设置中点击左侧的“出站规则”，选择最右侧的“新建规则”。在新建规则中选择类型为“程序”，路径选择“C:\Program Files(x86)\Nero\Nero 2021\Nero Burning ROM\nero.exe”，将nero.exe选中打开，操作选作“阻止连接”，配置文件不变，最后编辑名称为“阻止NERO出站”。
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="3.2" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/3.2.png')">
+                        <img src="img/3.2.png" alt="安装路径选择截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">3.2&nbsp;&nbsp;配置hosts文件</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;使用管理员身份打开“命令提示符”（CMD），输入“notepad C:\Windows\System32\drivers\etc\hosts”并回车，将会打开一个文本文件，在该文件的末尾添加以下内容：<br><br>&nbsp;&nbsp;&nbsp;127.0.0.1 www.nero.com<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 onlineshop.nero.com<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 23.74.204.49<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 2.20.235.247<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 216.58.214.40<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 151.101.12.143<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 66.117.29.4<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 63.140.41.167<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 13.80.12.54<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 239.255.255.250<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 2.19.38.243<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 ocsp.globalsign.com<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 ocsp2.globalsign.com<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 i2am.nero.com<br>
+&nbsp;&nbsp;&nbsp;127.0.0.1 iam.nero.com<br><br>
+添加完成后使用快捷键“Ctrl+s”保存文件并关闭即可。此时程序配置全部完成。
+                        </p>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.1" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.1.png')">
+                        <img src="img/4.1.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.1&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;打开“Nero Burning ROM.exe”文件，将出现左侧如图的界面。
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.2" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.2.png')">
+                        <img src="img/4.2.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.2&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;在该界面下，选择左上角的“DVD”，再在左侧可选格式中选择“DVD-ROM(ISO)”，接着选择“多区段”中的第一条“启动多重区段光盘[H]”，再点击右上菜单栏中的“ISO”
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.3" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.3.png')">
+                        <img src="img/4.3.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.3&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;点开ISO菜单后，将“文件系统”修改为“ISO 9660 + Joliet”用以兼容包含中文名称的文件，再点击“标签”
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.4" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.4.png')">
+                        <img src="img/4.4.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.4&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;点开标签菜单后，可以修改刻录光盘的名称，根据实际情况进行编辑。编辑完成光盘名称后即可点击右下角的“新建”。
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.5" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.5.png')">
+                        <img src="img/4.5.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.5&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;点击新建后将出现刻录操作区域。左侧为光盘内容区域，右侧为本地文件区域，可以在右侧找到需要刻录的文件，并将文件直接拖入左侧光盘内容区域即可。
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.6" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.6.png')">
+                        <img src="img/4.6.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.6&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;将所有需要刻录的文件拖入左侧区域后，点击最上边的“刻录机”->“选择刻录器”，并选择一个能够被正常识别的刻录设备。（如果只有一个刻录设备，一般第二条即为正确的刻录设备）选择完成后点击确定
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.7" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.7.png')">
+                        <img src="img/4.7.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.7&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;选择了正确的刻录设备后，点击上边菜单栏中的“刻录”，可以再次确认各项参数和刻录设置。<font color="red">（注意：每次点击刻录之后，都需要确认一遍标签中光盘名称是正确的）</font>。确保各项选项都正确后，打开刻录设备，放入一张全新的空白光盘，再点击“刻录”，即可开始刻录光盘。
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.8" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.8.png')">
+                        <img src="img/4.8.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.8&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;左侧即为刻录过程中的界面，等待红框中的进度条写满之后将完成刻录，而后刻录设备会自动弹出光盘，将光盘收好即可。<font color="red">（注意：千万不要在光盘背面的反光面写字或划刻，这样将会导致光盘信息丢失，光盘将会失效）</font>
+                        </p>
+                    </div>
+                </div>
+
+
+                <hr class="border-t border-gray-200">
+
+                <div id="4.9" class="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                    <div class="md:w-1/3 flex-shrink-0 cursor-pointer" onclick="openModal('img/4.9.png')">
+                        <img src="img/4.9.png" alt="完成安装页面截图" class="rounded-xl shadow-md transform hover:scale-105 transition duration-500 object-cover w-full h-auto">
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">4.9&nbsp;&nbsp;&nbsp;&nbsp;刻录流程</h3>
+                        <p class="text-lg text-gray-600 leading-relaxed mb-4">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;拿取刻录完成的光盘后，操作界面将返回操作区域如左图，可将左侧光盘内容区域中的文件删除，并拖入新的文件既可重复以上流程刻录新光盘，并在点击刻录后注意修改标签中的光盘名称。
+                        </p>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+        </section>
+
+        <section class="text-center py-12">
+            <a href="https://www.learnin.icu" class="inline-block px-8 py-4 bg-gray-900 text-white font-semibold rounded-full shadow-lg hover:bg-gray-700 transform hover:-translate-y-1 transition duration-300">LEARNIN.ICU</a>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p><a href="mailto:1323774051@qq.com">如有侵权，请立即联系我们删除相关内容。</a></p>
+        </div>
+    </footer>
+
+    <!-- ---------- Image Modal（只修改这里的结构与 JS） ---------- -->
+    <div id="image-modal" class="hidden fixed inset-0 z-[999] bg-black bg-opacity-75 flex justify-center items-center">
+        <div class="modal-viewport relative w-screen h-screen">
+            <div id="scale-indicator">100%</div>
+
+            <div class="absolute top-4 right-4 flex space-x-2 z-50">
+                <button id="zoom-in" class="bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-gray-700 transition">+</button>
+                <button id="zoom-out" class="bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold hover:bg-gray-700 transition">-</button>
+                <button id="close-btn" class="bg-gray-800 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-700 transition">
+                    <span class="text-red-500 text-4xl leading-none">&times;</span>
+                </button>
+            </div>
+
+            <!-- image-container 是 scrollable outer -->
+            <div id="image-container" class="rounded-lg shadow-xl w-full h-full cursor-grab">
+                <!-- content-wrapper 宽高由 JS 设置为 max(container, image) -->
+                <div id="content-wrapper">
+                    <div id="image-inner">
+                        <img id="modal-image" src="" alt="Enlarged image" draggable="false">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---------- JS: 完整且修正的缩放/滚动映射逻辑 ---------- -->
+    <script>
+        const imageModal = document.getElementById('image-modal');
+        const imageContainer = document.getElementById('image-container'); // overflow:auto element
+        const contentWrapper = document.getElementById('content-wrapper'); // 按需设置宽高
+        const imageInner = document.getElementById('image-inner'); // 实际像素尺寸容器
+        const modalImage = document.getElementById('modal-image');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const closeBtn = document.getElementById('close-btn');
+        const scaleIndicator = document.getElementById('scale-indicator');
+
+        // 缩放参数（乘法）
+        let scale = 1;
+        const ZOOM_MULT = 1.25;
+        const MIN_SCALE = 0.25;
+        const MAX_SCALE = 8;
+
+        // baseW/baseH = scale == 1 时 imageInner 的像素尺寸（fit to container）
+        let baseW = 0, baseH = 0;
+
+        // pointer 拖动状态
+        let isPointerDown = false, activePointerId = null;
+        let startClientX = 0, startClientY = 0, startScrollLeft = 0, startScrollTop = 0;
+
+        // 工具：clamp
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+        // 计算 baseW/baseH，使 scale=1 时图片等比 fit 到容器（不超过容器）
+        function computeBaseSize() {
+            const cw = imageContainer.clientWidth;
+            const ch = imageContainer.clientHeight;
+            const iw = modalImage.naturalWidth || modalImage.width || 1;
+            const ih = modalImage.naturalHeight || modalImage.height || 1;
+            const fit = Math.min(cw / iw, ch / ih);
+            baseW = Math.max(1, Math.round(iw * fit));
+            baseH = Math.max(1, Math.round(ih * fit));
+        }
+
+        // 更新 content-wrapper 的尺寸：应为 max(containerSize, imageSize)
+        function setContentWrapperSize(imageW, imageH) {
+            const cw = imageContainer.clientWidth;
+            const ch = imageContainer.clientHeight;
+            const wrapperW = Math.max(cw, imageW);
+            const wrapperH = Math.max(ch, imageH);
+            contentWrapper.style.width = wrapperW + 'px';
+            contentWrapper.style.height = wrapperH + 'px';
+            // contentWrapper 使用 flex 居中 imageInner，所以当 image smaller 时会居中显示
+        }
+
+        // 更新 HUD（短暂显示）
+        function showScaleHUD() {
+            scaleIndicator.style.display = 'block';
+            scaleIndicator.textContent = Math.round(scale * 100) + '%';
+            clearTimeout(window._hudTimer);
+            window._hudTimer = setTimeout(() => { scaleIndicator.style.display = 'none'; }, 700);
+        }
+
+        /**
+         * applyScale(newScale, focusClientX, focusClientY)
+         * - newScale: 目标缩放值（绝对）
+         * - focusClientX/Y: 可选，以页面 client 坐标为焦点（若提供则以此点为缩放焦点）
+         *   若未提供则以容器中心为焦点
+         */
+        function applyScale(newScale, focusClientX = null, focusClientY = null) {
+            newScale = clamp(newScale, MIN_SCALE, MAX_SCALE);
+
+            // 若 base 未计算（或容器改变），先计算
+            if (!baseW || !baseH) computeBaseSize();
+
+            const cw = imageContainer.clientWidth;
+            const ch = imageContainer.clientHeight;
+
+            // 旧显示尺寸
+            const oldW = Math.max(1, Math.round(baseW * scale));
+            const oldH = Math.max(1, Math.round(baseH * scale));
+
+            // 旧 wrapper padding（当图片小于容器时，leftPad = (wrapperW - oldW)/2 = (cw - oldW)/2）
+            const oldWrapperW = Math.max(cw, oldW);
+            const oldWrapperH = Math.max(ch, oldH);
+            const oldLeftPad = Math.max(0, (oldWrapperW - oldW) / 2);
+            const oldTopPad = Math.max(0, (oldWrapperH - oldH) / 2);
+
+            // 屏幕上的局部坐标（localX/Y） = pointer 相对于 container 的坐标
+            let localX, localY;
+            if (focusClientX !== null && focusClientY !== null) {
+                const rect = imageContainer.getBoundingClientRect();
+                localX = focusClientX - rect.left;
+                localY = focusClientY - rect.top;
+                // clamp local into container bounds
+                localX = clamp(localX, 0, cw);
+                localY = clamp(localY, 0, ch);
+            } else {
+                localX = cw / 2;
+                localY = ch / 2;
+            }
+
+            // 计算焦点在旧图片像素坐标的相对位置 relX/relY (0..1)
+            // abs_in_content_old = scrollLeft + localX
+            const absContentX_old = imageContainer.scrollLeft + localX;
+            const absContentY_old = imageContainer.scrollTop + localY;
+            // image coordinate = absContent - oldLeftPad
+            let absImageX_old = absContentX_old - oldLeftPad;
+            let absImageY_old = absContentY_old - oldTopPad;
+            // clamp into [0, oldW/oldH]
+            absImageX_old = clamp(absImageX_old, 0, oldW);
+            absImageY_old = clamp(absImageY_old, 0, oldH);
+            const relX = oldW ? (absImageX_old / oldW) : 0.5;
+            const relY = oldH ? (absImageY_old / oldH) : 0.5;
+
+            // 更新 scale
+            const prevScale = scale;
+            scale = newScale;
+
+            // 新显示尺寸
+            const newW = Math.max(1, Math.round(baseW * scale));
+            const newH = Math.max(1, Math.round(baseH * scale));
+
+            // 更新 imageInner 大小和 content-wrapper 大小
+            imageInner.style.width = newW + 'px';
+            imageInner.style.height = newH + 'px';
+            modalImage.style.width = '100%';
+            modalImage.style.height = '100%';
+            setContentWrapperSize(newW, newH);
+
+            // 新 wrapper padding
+            const newWrapperW = Math.max(cw, newW);
+            const newWrapperH = Math.max(ch, newH);
+            const newLeftPad = Math.max(0, (newWrapperW - newW) / 2);
+            const newTopPad = Math.max(0, (newWrapperH - newH) / 2);
+
+            // 计算新的 scroll，使焦点位置尽量不变：
+            // desired absolute in content = relX * newW + newLeftPad
+            const desiredAbsContentX_new = Math.round(relX * newW + newLeftPad);
+            const desiredAbsContentY_new = Math.round(relY * newH + newTopPad);
+
+            // newScrollLeft = desiredAbs - localX
+            const newScrollLeft = clamp(Math.round(desiredAbsContentX_new - localX), 0, Math.max(0, newWrapperW - cw));
+            const newScrollTop = clamp(Math.round(desiredAbsContentY_new - localY), 0, Math.max(0, newWrapperH - ch));
+
+            imageContainer.scrollLeft = newScrollLeft;
+            imageContainer.scrollTop = newScrollTop;
+
+            // 更新 cursor
+            if (newW > cw || newH > ch) imageContainer.classList.add('cursor-grab');
+            else imageContainer.classList.remove('cursor-grab', 'cursor-grabbing');
+
+            showScaleHUD();
+        }
+
+        // 打开 modal（保持和你原来的 onclick 兼容）
+        function openModal(src) {
+            modalImage.src = src;
+            imageModal.classList.remove('hidden');
+            imageModal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // 阻止背景滚动
+            scale = 1;
+            scaleIndicator.style.display = 'none';
+
+            // 等图片加载再计算 base 并居中显示
+            if (modalImage.complete && modalImage.naturalWidth) {
+                computeBaseSize();
+                applyScale(1, null, null);
+            } else {
+                modalImage.onload = () => {
+                    computeBaseSize();
+                    applyScale(1, null, null);
+                    modalImage.onload = null;
+                };
+            }
+        }
+
+        function closeModal() {
+            imageModal.classList.add('hidden');
+            imageModal.classList.remove('flex');
+            document.body.style.overflow = '';
+            // 可选清 src: modalImage.src = '';
+        }
+
+        // 按钮放大/缩小（乘法）
+        zoomInBtn.addEventListener('click', () => applyScale(clamp(scale * ZOOM_MULT, MIN_SCALE, MAX_SCALE), null, null));
+        zoomOutBtn.addEventListener('click', () => applyScale(clamp(scale / ZOOM_MULT, MIN_SCALE, MAX_SCALE), null, null));
+        closeBtn.addEventListener('click', closeModal);
+
+        // pointer 拖动
+        imageContainer.addEventListener('pointerdown', (e) => {
+            // 仅当图片更大时启用拖动
+            const dispW = Math.round(baseW * scale);
+            const dispH = Math.round(baseH * scale);
+            if (dispW <= imageContainer.clientWidth && dispH <= imageContainer.clientHeight) return;
+
+            isPointerDown = true;
+            activePointerId = e.pointerId;
+            imageContainer.setPointerCapture(activePointerId);
+            startClientX = e.clientX;
+            startClientY = e.clientY;
+            startScrollLeft = imageContainer.scrollLeft;
+            startScrollTop = imageContainer.scrollTop;
+            imageContainer.classList.add('cursor-grabbing');
+            e.preventDefault();
+        });
+
+        imageContainer.addEventListener('pointermove', (e) => {
+            if (!isPointerDown) return;
+            const dx = e.clientX - startClientX;
+            const dy = e.clientY - startClientY;
+            const wrapperW = Math.max(imageContainer.clientWidth, Math.round(baseW * scale));
+            const wrapperH = Math.max(imageContainer.clientHeight, Math.round(baseH * scale));
+            const maxSL = Math.max(0, wrapperW - imageContainer.clientWidth);
+            const maxST = Math.max(0, wrapperH - imageContainer.clientHeight);
+            imageContainer.scrollLeft = clamp(Math.round(startScrollLeft - dx), 0, maxSL);
+            imageContainer.scrollTop = clamp(Math.round(startScrollTop - dy), 0, maxST);
+        });
+
+        imageContainer.addEventListener('pointerup', (e) => {
+            if (!isPointerDown) return;
+            isPointerDown = false;
+            try { imageContainer.releasePointerCapture(activePointerId); } catch {}
+            imageContainer.classList.remove('cursor-grabbing');
+        });
+        imageContainer.addEventListener('pointercancel', (e) => {
+            if (!isPointerDown) return;
+            isPointerDown = false;
+            try { imageContainer.releasePointerCapture(activePointerId); } catch {}
+            imageContainer.classList.remove('cursor-grabbing');
+        });
+
+        // 鼠标滚轮 + Ctrl/Meta 缩放（以鼠标为焦点）
+        imageContainer.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                // 更平滑的倍率：每次乘 1.1（滚轮向上）或除 1.1（向下）
+                const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                applyScale(clamp(scale * factor, MIN_SCALE, MAX_SCALE), e.clientX, e.clientY);
+            }
+        }, { passive: false });
+
+        // 禁止图片默认 drag
+        modalImage.addEventListener('dragstart', (e) => e.preventDefault());
+
+        // 点击遮罩背景关闭
+        imageModal.addEventListener('click', (e) => { if (e.target === imageModal) closeModal(); });
+
+        // Esc 关闭，键盘 +/- 快捷
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !imageModal.classList.contains('hidden')) closeModal();
+            if (e.key === '+' || e.key === '=') applyScale(clamp(scale * ZOOM_MULT, MIN_SCALE, MAX_SCALE), null, null);
+            if (e.key === '-') applyScale(clamp(scale / ZOOM_MULT, MIN_SCALE, MAX_SCALE), null, null);
+        });
+
+        // 窗口 resize 时保持当前中心点（记录 relX/relY 并重算）
+        window.addEventListener('resize', () => {
+            if (imageModal.classList.contains('hidden')) return;
+            if (!baseW || !baseH) computeBaseSize();
+            const cw = imageContainer.clientWidth;
+            const ch = imageContainer.clientHeight;
+            const oldW = Math.max(1, Math.round(baseW * scale));
+            const oldH = Math.max(1, Math.round(baseH * scale));
+            const oldWrapperW = Math.max(cw, oldW);
+            const oldWrapperH = Math.max(ch, oldH);
+            const oldLeftPad = Math.max(0, (oldWrapperW - oldW) / 2);
+            const oldTopPad = Math.max(0, (oldWrapperH - oldH) / 2);
+
+            // 当前容器中心映射到 image rel
+            const centerX = imageContainer.scrollLeft + cw / 2;
+            const centerY = imageContainer.scrollTop + ch / 2;
+            const absImageX = clamp(centerX - oldLeftPad, 0, oldW);
+            const absImageY = clamp(centerY - oldTopPad, 0, oldH);
+            const relX = oldW ? (absImageX / oldW) : 0.5;
+            const relY = oldH ? (absImageY / oldH) : 0.5;
+
+            // 重新 compute base（容器可能变了）
+            computeBaseSize();
+
+            // 重新设置 imageInner & wrapper，保持 rel 中心
+            const newW = Math.max(1, Math.round(baseW * scale));
+            const newH = Math.max(1, Math.round(baseH * scale));
+            imageInner.style.width = newW + 'px';
+            imageInner.style.height = newH + 'px';
+            setContentWrapperSize(newW, newH);
+
+            const newWrapperW = Math.max(cw, newW);
+            const newWrapperH = Math.max(ch, newH);
+            const newLeftPad = Math.max(0, (newWrapperW - newW) / 2);
+            const newTopPad = Math.max(0, (newWrapperH - newH) / 2);
+
+            const desiredAbsX = Math.round(relX * newW + newLeftPad);
+            const desiredAbsY = Math.round(relY * newH + newTopPad);
+            imageContainer.scrollLeft = clamp(Math.round(desiredAbsX - cw / 2), 0, Math.max(0, newWrapperW - cw));
+            imageContainer.scrollTop = clamp(Math.round(desiredAbsY - ch / 2), 0, Math.max(0, newWrapperH - ch));
+        });
+
+        // 兼容：页面上缩略图点击打开 modal（保留你的 onclick 就足够，但多一层保险）
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('click', (e) => {
+                if (e.currentTarget.id === 'modal-image') return;
+                if (e.currentTarget.closest('#image-modal')) return;
+                openModal(e.currentTarget.src);
+            });
+        });
+    </script>
+</body>
+</html>
