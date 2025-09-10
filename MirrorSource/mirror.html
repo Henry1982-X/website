@@ -604,7 +604,11 @@ export JASPERINC=$DIR/grib2/include
 
 </summary>
 <div class="mt-2 relative">
-<pre><code class="language-bash">wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
+<pre><code class="language-bash">su    # 运行su指令后需要输入超级管理员密码
+cd /home/ubuntu/
+
+
+wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
 tar -zxvf WRF-v4.7.1.tar.gz
 cd WRFV4.7.1
 ./configure   # (执行后有两个配置选项，分别输入 34 和 1)
@@ -616,7 +620,7 @@ cd ..
 wget https://mirror.learnin.icu/WPS-master.zip
 unzip WPS-master.zip
 cd WPS-master
-export WRF_DIR=/home/ubuntu/WRFV4.7.1
+export WRF_DIR=/home/ubuntu/WRFV4.7.1/
 ./configure   # (选 1)
 ./compile &gt;&amp; log &amp;
 tail -f log  # 用来动态查看保存在log文件中的编译日志
