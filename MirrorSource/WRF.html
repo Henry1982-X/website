@@ -611,7 +611,7 @@ cd /home/ubuntu/
 wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
 tar -zxvf WRF-v4.7.1.tar.gz
 cd WRFV4.7.1
-./configure   # (执行后有两个配置选项，分别输入 34 和 1)
+./configure   # (执行后有两个配置选项，第一个在32、33、34、35中根据自己的情况选择，第二个在1、2、3中根据自己的实际求解情况选择)
 ./compile em_real -j 4 &gt;&amp; log &amp;
 tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..
