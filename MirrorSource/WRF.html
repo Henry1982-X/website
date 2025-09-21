@@ -621,7 +621,7 @@ wget https://mirror.learnin.icu/WPS-master.zip
 unzip WPS-master.zip
 cd WPS-master
 export WRF_DIR=/home/ubuntu/WRFV4.7.1/
-./configure   # (选 1)
+./configure   # (需要和WRF中的配置选择相对应。若WRF中选择34，这里可选1。若WRF中选择33，这里应选3。)
 ./compile &gt;&amp; log &amp;
 tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..
