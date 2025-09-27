@@ -1,0 +1,311 @@
+<!--
+这是一个用于优化 WRF 编译过程的综合性交互式指南。
+它使用 Tailwind CSS 构建，设计简洁现代。
+代码块是可交互的，允许用户展开和折叠，并提供“复制”按钮，方便使用。
+-->
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>WRF 运行指南</title>
+    <!-- 使用现代、可读性强的字体 -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <!-- 从 CDN 加载 Tailwind CSS 以进行实用优先的样式设计 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义 body 和排版样式 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        /* details/summary 元素的样式，使其看起来整洁 */
+        summary {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #e5e7eb;
+            transition: background-color 0.2s ease-in-out;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        summary:hover {
+            background-color: #d1d5db;
+        }
+
+        /* 隐藏 details 默认的箭头 */
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        /* 代码块的样式 */
+        pre {
+            background-color: #1f2937;
+            /* 代码的深色背景 */
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        code {
+            font-size: 0.875rem;
+            /* 减小代码字体大小以提高可读性 */
+            line-height: 1.5;
+        }
+
+        /* Language Toggle Switch */
+        .language-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4F46E5;
+            /* Indigo-600 */
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #4F46E5;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(36px);
+            -ms-transform: translateX(36px);
+            transform: translateX(36px);
+        }
+
+        .slider-text {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .slider-text span {
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .slider-text .zh-label {
+            opacity: 1;
+            color: white;
+        }
+
+        .slider-text .en-label {
+            opacity: 0;
+            color: #ffffff;
+            /* 确保英文标签在未选中时是白色，选中时透明 */
+        }
+
+        input:checked+.slider .zh-label {
+            opacity: 0;
+        }
+
+        input:checked+.slider .en-label {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-500">
+    <div class="language-toggle">
+        <label class="toggle-switch">
+            <input type="checkbox" id="languageToggle">
+            <span class="slider round">
+                <div class="slider-text">
+                    <span class="zh-label">ZH</span>
+                    <span class="en-label">EN</span>
+                </div>
+            </span>
+        </label>
+    </div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- 头部部分 -->
+        <header class="bg-white dark:bg-gray-800 p-6 md:p-10 rounded-xl shadow-lg mb-8 text-center">
+            <h1 class="text-3xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2"
+                data-lang-key="header_title">WRF 运行指南（不包含WRFDA部分）</h1>
+        </header>
+        <!-- 主要内容部分 -->
+        <main class="space-y-8">
+            <!-- 简介部分 -->
+            <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="intro_title">前言</h2>
+                <p class="text-gray-700 dark:text-gray-300" data-lang-key="intro_p1">
+                    本指南旨在提供一个基于ubuntu24系统（本地或服务器平台）的 WRF 的基本运行流程，希望能够提供基础的WRF运行方式。
+                </p><br>
+            </section>
+
+
+
+<!-------------------------------------------------------------------------------------------------------------------------------------------------------->
+            <!-- 准备工作-->
+            <section class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-indigo-500 mb-4" data-lang-key="prep_title">准备工作</h2>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-2" data-lang-key="prep_p1">
+                            首先，确保你已经明确WPS和WRF的安装路径，并且已经正确安装并编译了WPS和WRF（在WP文件夹中能见到geogrid.exe，ungrib.exe和metgrid.exe；在WRF/run文件夹中能看见real.exe和wrf.exe）。<br><br>
+                            
+                            其次，在一个干净的目录下，新建一个工作文件夹，将WPS的整个文件夹和WRF文件夹中的wrf_run文件夹全部复制到工作文件夹中，并将其在工作文件夹中分别再复制一份并重命名为wps_copy和wrf_run_copy。<br><br>
+
+                            此时，工作文件夹中应该有四个文件夹：wps, wps_copy, wrf_run, wrf_run_copy。<br><br>
+
+                            在工作文件夹中新建一个clean_wps.sh文件、一个clean_wrf.sh文件和一个clean_all.sh文件，用于单独重置或整体重置。<br><font color="red">（注意：此重置为完全重置，使用静态数据运行geogrid.exe得到的结果也将被删除）</font><br><br>
+                            
+                            将以下代码块中的内容复制进对应的.sh文件中，并赋予其可执行权限（chmod +x 文件名.sh），即可完成所有准备工作。<br><br>
+                        </p>
+
+                        <details class="mb-4">
+                            <summary
+                                class="flex items-center justify-between text-gray-900 dark:text-gray-100 font-medium bg-gray-200 dark:bg-gray-700 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+                                <span data-lang-key="prep_details1_summary">clean_wps.sh</span>
+                                <div class="flex space-x-2">
+                                    <button
+                                        class="copy-btn p-1 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs transition-colors duration-200"
+                                        title="复制到剪贴板">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M8 5H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 12h.01"
+                                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                        </svg><span class="copy-label" data-lang-key="copy_button_text">一键复制</span>
+                                    </button>
+                                </div>
+                            </summary>
+                            <div class="mt-2 relative">
+                                <pre><code class="language-bash">sudo apt-get -y update
+sudo apt-get -y upgrade
+sudo apt-get install -y build-essential gcc gfortran g++ m4 binutils libcurl4-openssl-dev \
+openmpi-bin libopenmpi-dev curl wget unzip tcsh cmake libxml2-dev pkg-config</code></pre>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+<!-------------------------------------------------------------------------------------------------------------------------------------------------------->
+
+
+
+
+
+
+        </main>
+    </div>
+    <!-- JavaScript to handle copy functionality and language toggle -->
+    <script>
+
+        // 等待 DOM 内容完全加载后再添加事件监听器
+        document.addEventListener('DOMContentLoaded', () => {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+
+            // 复制功能
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const preElement = button.closest('details').querySelector('pre');
+                    if (preElement) {
+                        const codeElement = preElement.querySelector('code');
+                        const codeText = codeElement.textContent;
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(codeText).then(() => {
+                                showCopiedFeedback(button);
+                            }).catch(err => {
+                                fallbackCopyTextToClipboard(codeText, button);
+                            });
+                        } else {
+                            fallbackCopyTextToClipboard(codeText, button);
+                        }
+                    }
+                });
+            });
+
+            // 回退复制函数
+            function fallbackCopyTextToClipboard(text, button) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopiedFeedback(button);
+                } catch (err) {
+                    console.error('回退方案：哎呀，无法复制', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            // 复制成功反馈
+            function showCopiedFeedback(button) {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+
+</html>
