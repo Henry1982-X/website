@@ -597,10 +597,10 @@ export JASPERINC=$DIR/grib2/include
 wget https://mirror.learnin.icu/WRF-v4.7.1.tar.gz
 tar -zxvf WRF-v4.7.1.tar.gz
 cd WRFV4.7.1
-./configure   # (执行后有两个配置选项，第一个在32、33、34、35中根据自己的情况选择，第二个在1、2、3中根据自己的实际求解情况选择)
+./configure   # (执行后有两个配置选项，个人主机第一个在选34，第二个默认1；大型服务集群第一个选35，第二个默认1)
 ./compile em_real -j 4 &gt;&amp; log &amp;
 tail -f log  # 用来动态查看保存在log文件中的编译日志，编译结束后需要Ctrl+C退出动态查看
-cp -r $HOME/WRF/WRFV4.7.1/run $HOME/WRF/2-WRF/WRF-RUN-COPY
+cp -L -r $HOME/WRF/WRFV4.7.1/run/* $HOME/WRF/2-WRF/WRF-RUN-COPY/
 cd ..
 
 
@@ -609,7 +609,7 @@ wget https://mirror.learnin.icu/WPS.zip
 unzip WPS.zip
 cd WPS-master-copy
 export WRF_DIR=$HOME/WRF/WRFV4.7.1/
-./configure   # (需要和WRF中的配置选择相对应。若WRF中选择34，这里可选1。若WRF中选择33，这里应选3。)
+./configure   # (需要和WRF中的配置选择相对应。编译WRF中的第一个参数选择34或35，这里均选3。)
 ./compile &gt;&amp; log &amp;
 tail -f log  # 用来动态查看保存在log文件中的编译日志
 cd ..
