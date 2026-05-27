@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>像素替换动画生成器（GIF自由输入版）</title>
+  <style>
+    :root {
+      --bg: #1e1e2e;
+      --panel: #313244;
+      --panel-2: #2b2b2b;
+      --border: #45475a;
+      --dash: #888;
+      --text: #cdd6f4;
+      --muted: #a6adc8;
+      --button: #89b4fa;
+      --button-text: #111827;
+      --button-disabled: #585b70;
+      --danger: #f38ba8;
+      --ok: #a6e3a1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 28px 18px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      min-height: 750px;
+      background: var(--bg);
+      border-radius: 24px;
+      padding: 18px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .drop-box {
+      width: 280px;
+      height: 280px;
+      border: 2px dashed var(--dash);
+      border-radius: 20px;
+      background: var(--panel-2);
+      color: #ccc;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.8;
+      cursor: pointer;
+      overflow: hidden;
+      user-select: none;
+      transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+      position: relative;
+    }
+
+    .drop-box.dragover {
+      border-color: var(--button);
+      background: #363a4f;
+      transform: translateY(-1px);
+    }
+
+    .drop-box img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .preview-box {
+      width: 400px;
+      height: 400px;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: auto;
+      display: block;
+    }
+
+    .log {
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 5px;
+      min-height: 24px;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .buttons {
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    button {
+      width: 150px;
+      height: 40px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--button);
+      color: var(--button-text);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      background: var(--button-disabled);
+      color: #cdd6f4;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .progress-wrap {
+      margin-top: 15px;
+      display: none;
+    }
+
+    progress {
+      width: 100%;
+      height: 18px;
+      border: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #11111b;
+    }
+
+    progress::-webkit-progress-bar {
+      background: #11111b;
+      border-radius: 10px;
+    }
+
+    progress::-webkit-progress-value {
+      background: var(--button);
+      border-radius: 10px;
+    }
+
+    progress::-moz-progress-bar {
+      background: var(--button);
+      border-radius: 10px;
+    }
+
+    .notes {
+      margin-top: 16px;
+      color: #7f849c;
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    @media (max-width: 1030px) {
+      .preview-box {
+        order: 3;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        padding: 10px;
+      }
+
+      .drop-box {
+        width: min(280px, 100vw - 44px);
+        height: min(280px, 100vw - 44px);
+      }
+
+      .preview-box {
+        width: min(400px, 100vw - 44px);
+        height: min(400px, 100vw - 44px);
+      }
+
+      .buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="top">
+      <label id="sourceDrop" class="drop-box" for="sourceInput">
+        上传原图<br>(仅 JPG/PNG)
+      </label>
+
+      <div id="previewBox" class="preview-box">生成预览</div>
+
+      <label id="gifDrop" class="drop-box" for="gifInput">
+        替换动画块<br>(可选 GIF，任意比例)
+      </label>
+    </section>
+
+    <div id="log" class="log">日志：准备就绪</div>
+
+    <section class="buttons">
+      <button id="generateBtn" disabled>生成动画</button>
+      <button id="downloadBtn" disabled>下载 GIF</button>
+    </section>
+
+    <div id="progressWrap" class="progress-wrap">
+      <progress id="progress" max="100" value="0"></progress>
+    </div>
+
+    <p class="notes">
+      生成结果只缓存在当前页面内存 Blob 中，不写入 localStorage / IndexedDB / FileSystem；刷新页面会丢失上传内容和生成结果。
+    </p>
+
+    <input id="sourceInput" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
+    <input id="gifInput" type="file" accept=".gif,image/gif" />
+  </main>
+
+  <script type="module">
+    import { parseGIF, decompressFrames } from "https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm";
+    import { GIFEncoder, quantize, applyPalette } from "https://unpkg.com/gifenc@1.0.3";
+
+    // ---------- 可调参数：保持与原 Python 代码一致 ----------
+    const OUTPUT_RES = 20;
+    const BLOCK_SIZE = 60;
+    const MAX_WORKERS = 8;
+    const FIXED_FRAME_COUNT = 24;
+    const COLOR_INFLUENCE = 0.75;
+
+    const GIF_COMPRESS_COLORS = 256;
+    const GIF_MIN_DURATION_MS = 20;
+
+    // "blur" | "average" | "transparent" | "black"
+    const GIF_SQUARE_FILL_MODE = "blur";
+
+    const BIG_SIZE = OUTPUT_RES * BLOCK_SIZE;
+
+    const els = {
+      sourceInput: document.getElementById("sourceInput"),
+      gifInput: document.getElementById("gifInput"),
+      sourceDrop: document.getElementById("sourceDrop"),
+      gifDrop: document.getElementById("gifDrop"),
+      previewBox: document.getElementById("previewBox"),
+      generateBtn: document.getElementById("generateBtn"),
+      downloadBtn: document.getElementById("downloadBtn"),
+      progressWrap: document.getElementById("progressWrap"),
+      progress: document.getElementById("progress"),
+      log: document.getElementById("log"),
+    };
+
+    const state = {
+      sourceFile: null,
+      gifFile: null,
+      sourceUrl: null,
+      gifUrl: null,
+      resultBlob: null,
+      resultUrl: null,
+      runId: 0,
+      busy: false,
+    };
+
+    window.addEventListener("pagehide", cleanupAllUrls);
+
+    els.sourceInput.addEventListener("change", () => {
+      const file = els.sourceInput.files?.[0];
+      if (file) onSourceFile(file);
+      els.sourceInput.value = "";
+    });
+
+    els.gifInput.addEventListener("change", () => {
+      const file = els.gifInput.files?.[0];
+      if (file) onGifFile(file);
+      els.gifInput.value = "";
+    });
+
+    setupDropZone(els.sourceDrop, [".jpg", ".jpeg", ".png"], onSourceFile);
+    setupDropZone(els.gifDrop, [".gif"], onGifFile);
+
+    els.generateBtn.addEventListener("click", generate);
+    els.downloadBtn.addEventListener("click", downloadGeneratedGif);
+
+    function setupDropZone(el, extensions, onFile) {
+      el.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        el.classList.add("dragover");
+      });
+
+      el.addEventListener("dragleave", () => {
+        el.classList.remove("dragover");
+      });
+
+      el.addEventListener("drop", (event) => {
+        event.preventDefault();
+        el.classList.remove("dragover");
+
+        const files = Array.from(event.dataTransfer?.files || []);
+        const file = files.find((item) => isSupportedFile(item, extensions));
+        if (!file) {
+          alert(`请选择支持的格式：${extensions.join(" / ")}`);
+          return;
+        }
+
+        onFile(file);
+      });
+    }
+
+    function isSupportedFile(file, extensions) {
+      const name = (file?.name || "").toLowerCase();
+      return extensions.some((ext) => name.endsWith(ext));
+    }
+
+    function onSourceFile(file) {
+      if (!isSupportedFile(file, [".jpg", ".jpeg", ".png"])) {
+        alert("提示：请上传 JPG 或 PNG 原图");
+        return;
+      }
+
+      state.sourceFile = file;
+      revokeUrl("sourceUrl");
+      state.sourceUrl = URL.createObjectURL(file);
+
+      els.sourceDrop.innerHTML = "";
+      const img = document.createElement("img");
+      img.alt = file.name;
+      img.src = state.sourceUrl;
+      els.sourceDrop.appendChild(img);
+
+      els.generateBtn.disabled = false;
+      log(`日志：已选择原图 ${file.name}`);
+    }
+
+    function onGifFile(file) {
+      if (!isSupportedFile(file, [".gif"])) {
+        alert("提示：请上传 GIF 替换动画块");
+        return;
+      }
+
+      state.gifFile = file;
+      revokeUrl("gifUrl");
+      state.gifUrl = URL.createObjectURL(file);
+
+      els.gifDrop.innerHTML = "";
+      const img = document.createElement("img");
+      img.alt = file.name;
+      img.src = state.gifUrl;
+      els.gifDrop.appendChild(img);
+
+      log(`日志：已选择替换 GIF ${file.name}，生成时会自动补方/压缩`);
+    }
+
+    async function generate() {
+      if (!state.sourceFile) {
+        alert("提示：请先上传原图");
+        return;
+      }
+
+      const runId = ++state.runId;
+      state.busy = true;
+      cleanupResult(true);
+
+      setBusy(true);
+      setProgress(0, true);
+
+      try {
+        log("日志：开始处理原图...");
+        const pixels = await loadSourcePixels(state.sourceFile);
+        ensureCurrentRun(runId);
+
+        if (state.gifFile) {
+          log("日志：读取并自动处理外部替换 GIF...");
+        } else {
+          log("日志：使用内置默认动画块...");
+        }
+
+        const replacement = await loadReplacementFrames(state.gifFile);
+        ensureCurrentRun(runId);
+
+        const frames = ensureBlockFrames(replacement.frames);
+        const durations = replacement.durations;
+        const numFrames = frames.length;
+        const frameDurationMs = safeDuration(durations[0] || 100, 100);
+
+        if (replacement.compressedSizeKb !== null) {
+          log(
+            `日志：样本 GIF 原始帧数 ${replacement.originalFrameCount}，` +
+            `已补方/下采样/压缩为 ${replacement.compressedSizeKb.toFixed(1)} KB，` +
+            `固定输出 ${numFrames} 帧`
+          );
+        } else {
+          log(`日志：默认替换动画帧数 ${replacement.originalFrameCount}，固定输出 ${numFrames} 帧`);
+        }
+
+        log(`日志：开始合成动画，样本 GIF 帧数=${numFrames}，并行线程=${MAX_WORKERS}...`);
+
+        const composedFrames = await composeAllFrames(frames, pixels, (completed) => {
+          const value = Math.floor((completed / numFrames) * 95);
+          setProgress(value, true);
+        });
+        ensureCurrentRun(runId);
+
+        setProgress(96, true);
+        log("日志：编码最终 GIF 到内存 Blob...");
+        const bytes = await encodeGifBytes(composedFrames, new Array(numFrames).fill(frameDurationMs), BIG_SIZE, BIG_SIZE, {
+          yieldEveryFrame: true,
+        });
+        ensureCurrentRun(runId);
+
+        state.resultBlob = new Blob([bytes], { type: "image/gif" });
+        revokeUrl("resultUrl");
+        state.resultUrl = URL.createObjectURL(state.resultBlob);
+
+        const img = document.createElement("img");
+        img.alt = "生成预览";
+        img.src = state.resultUrl;
+        els.previewBox.innerHTML = "";
+        els.previewBox.appendChild(img);
+
+        setProgress(100, true);
+        setProgress(100, false);
+
+        els.downloadBtn.disabled = false;
+        log("日志：生成完成，可以预览/下载");
+      } catch (error) {
+        if (error?.message !== "RUN_CANCELLED") {
+          console.error(error);
+          alert(`错误：${error?.message || error}`);
+          log(`错误：${error?.message || error}`);
+        }
+      } finally {
+        if (runId === state.runId) {
+          state.busy = false;
+          setBusy(false);
+        }
+      }
+    }
+
+    function downloadGeneratedGif() {
+      if (!state.resultBlob || !state.resultUrl) return;
+
+      const anchor = document.createElement("a");
+      anchor.href = state.resultUrl;
+      anchor.download = "output.gif";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      log("日志：已触发浏览器下载 output.gif");
+    }
+
+    function setBusy(isBusy) {
+      els.generateBtn.disabled = isBusy || !state.sourceFile;
+      els.downloadBtn.disabled = isBusy || !state.resultBlob;
+    }
+
+    function setProgress(value, visible) {
+      els.progress.value = Math.max(0, Math.min(100, value));
+      els.progressWrap.style.display = visible ? "block" : "none";
+    }
+
+    function log(message) {
+      els.log.textContent = message;
+    }
+
+    function ensureCurrentRun(runId) {
+      if (runId !== state.runId) {
+        throw new Error("RUN_CANCELLED");
+      }
+    }
+
+    function cleanupResult(clearPreview) {
+      revokeUrl("resultUrl");
+      state.resultBlob = null;
+      els.downloadBtn.disabled = true;
+
+      if (clearPreview) {
+        els.previewBox.innerHTML = "生成预览";
+      }
+    }
+
+    function cleanupAllUrls() {
+      revokeUrl("sourceUrl");
+      revokeUrl("gifUrl");
+      revokeUrl("resultUrl");
+    }
+
+    function revokeUrl(key) {
+      if (state[key]) {
+        URL.revokeObjectURL(state[key]);
+        state[key] = null;
+      }
+    }
+
+    function nextTick() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    // ---------- 原图处理：等价于 convert("RGB").resize((20,20), NEAREST) ----------
+    async function loadSourcePixels(file) {
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = OUTPUT_RES;
+      canvas.height = OUTPUT_RES;
+
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, OUTPUT_RES, OUTPUT_RES);
+      ctx.drawImage(bitmap, 0, 0, OUTPUT_RES, OUTPUT_RES);
+
+      bitmap.close?.();
+
+      return ctx.getImageData(0, 0, OUTPUT_RES, OUTPUT_RES).data;
+    }
+
+    function safeDuration(value, fallback = 100) {
+      const parsed = Number.parseInt(value || fallback, 10);
+      const duration = Number.isFinite(parsed) ? parsed : fallback;
+      return Math.max(GIF_MIN_DURATION_MS, duration);
+    }
+
+    // ---------- 默认替换 GIF：等价于 create_default_replacement_gif ----------
+    function createDefaultReplacementFrames(size = BLOCK_SIZE, frameCount = FIXED_FRAME_COUNT) {
+      const frames = [];
+      const duration = 100;
+
+      for (let i = 0; i < frameCount; i++) {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.fillStyle = "rgb(255,255,255)";
+        ctx.fillRect(0, 0, size, size);
+
+        const r = Math.floor((i / frameCount) * 255) % 256;
+        const g = Math.floor(((i / frameCount) * 1.5 + 0.3) * 255) % 256;
+        const b = Math.floor(((i / frameCount) * 0.7 + 0.6) * 255) % 256;
+
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.beginPath();
+        ctx.ellipse(size / 2, size / 2, (size - 6) / 2, (size - 6) / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        frames.push({
+          data: ctx.getImageData(0, 0, size, size).data,
+          width: size,
+          height: size,
+        });
+      }
+
+      return {
+        frames,
+        durations: new Array(frameCount).fill(duration),
+        originalFrameCount: frameCount,
+        compressedSizeKb: null,
+      };
+    }
+
+    // ---------- GIF 解码、全帧重建、补方、压缩并重新读取 ----------
+    async function loadReplacementFrames(gifFile) {
+      if (!gifFile) {
+        return createDefaultReplacementFrames();
+      }
+
+      const buffer = await gifFile.arrayBuffer();
+      const decoded = decodeGifFullFrames(buffer);
+      const rawFrames = decoded.frames;
+      const rawDurations = decoded.durations;
+      const rawCount = rawFrames.length;
+
+      if (!rawFrames.length) {
+        throw new Error("替换 GIF 中没有可用帧");
+      }
+
+      const processedFrames = [];
+      for (const frame of rawFrames) {
+        processedFrames.push(squarePadAndResizeFrame(frame, BLOCK_SIZE));
+        if (processedFrames.length % 4 === 0) await nextTick();
+      }
+
+      const adjusted = adjustToFixedFrameCount(processedFrames, rawDurations, FIXED_FRAME_COUNT);
+
+      const compressedBytes = await encodeGifBytes(
+        adjusted.frames,
+        adjusted.durations,
+        BLOCK_SIZE,
+        BLOCK_SIZE,
+        { yieldEveryFrame: true }
+      );
+
+      const compressedSizeKb = compressedBytes.byteLength / 1024;
+
+      const compressedBuffer = compressedBytes.buffer.slice(
+        compressedBytes.byteOffset,
+        compressedBytes.byteOffset + compressedBytes.byteLength
+      );
+      const reread = decodeGifFullFrames(compressedBuffer);
+
+      const fixedAgain = adjustToFixedFrameCount(reread.frames, reread.durations, FIXED_FRAME_COUNT);
+
+      return {
+        frames: fixedAgain.frames,
+        durations: fixedAgain.durations,
+        originalFrameCount: rawCount,
+        compressedSizeKb,
+      };
+    }
+
+    function decodeGifFullFrames(arrayBuffer) {
+      const gif = parseGIF(arrayBuffer);
+      const frames = decompressFrames(gif, true);
+
+      const width = gif?.lsd?.width || gif?.width;
+      const height = gif?.lsd?.height || gif?.height;
+
+      if (!width || !height) {
+        throw new Error("无法读取 GIF 尺寸");
+      }
+
+      const canvas = new Uint8ClampedArray(width * height * 4);
+      const output = [];
+      const durations = [];
+
+      let previousCanvas = null;
+
+      for (const frame of frames) {
+        const dims = frame.dims || { left: 0, top: 0, width, height };
+        const patch = frame.patch;
+
+        if (!patch) continue;
+
+        if (frame.disposalType === 3) {
+          previousCanvas = new Uint8ClampedArray(canvas);
+        }
+
+        for (let y = 0; y < dims.height; y++) {
+          for (let x = 0; x < dims.width; x++) {
+            const patchIndex = (y * dims.width + x) * 4;
+            const alpha = patch[patchIndex + 3];
+
+            // 透明像素不覆盖历史画布，更符合 GIF 透明色语义。
+            if (alpha === 0) continue;
+
+            const targetX = dims.left + x;
+            const targetY = dims.top + y;
+            if (targetX < 0 || targetX >= width || targetY < 0 || targetY >= height) continue;
+
+            const targetIndex = (targetY * width + targetX) * 4;
+            canvas[targetIndex] = patch[patchIndex];
+            canvas[targetIndex + 1] = patch[patchIndex + 1];
+            canvas[targetIndex + 2] = patch[patchIndex + 2];
+            canvas[targetIndex + 3] = alpha;
+          }
+        }
+
+        output.push({
+          data: new Uint8ClampedArray(canvas),
+          width,
+          height,
+        });
+        durations.push(safeDuration(frame.delay || 100, 100));
+
+        if (frame.disposalType === 2) {
+          clearRect(canvas, width, height, dims.left, dims.top, dims.width, dims.height);
+        } else if (frame.disposalType === 3 && previousCanvas) {
+          canvas.set(previousCanvas);
+          previousCanvas = null;
+        }
+      }
+
+      if (!output.length) {
+        throw new Error("替换 GIF 中没有可用帧");
+      }
+
+      return { frames: output, durations };
+    }
+
+    function clearRect(data, canvasWidth, canvasHeight, left, top, width, height) {
+      for (let y = 0; y < height; y++) {
+        const targetY = top + y;
+        if (targetY < 0 || targetY >= canvasHeight) continue;
+
+        for (let x = 0; x < width; x++) {
+          const targetX = left + x;
+          if (targetX < 0 || targetX >= canvasWidth) continue;
+
+          const index = (targetY * canvasWidth + targetX) * 4;
+          data[index] = 0;
+          data[index + 1] = 0;
+          data[index + 2] = 0;
+          data[index + 3] = 0;
+        }
+      }
+    }
+
+    function ensureBlockFrames(frames) {
+      return frames.map((frame) => {
+        if (frame.width === BLOCK_SIZE && frame.height === BLOCK_SIZE) {
+          return frame;
+        }
+        return squarePadAndResizeFrame(frame, BLOCK_SIZE);
+      });
+    }
+
+    function frameToCanvas(frame) {
+      const canvas = document.createElement("canvas");
+      canvas.width = frame.width;
+      canvas.height = frame.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+      return canvas;
+    }
+
+    function getAverageRgb(frame) {
+      const data = frame.data;
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let count = 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 8) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          count++;
+        }
+      }
+
+      if (count === 0) {
+        for (let i = 0; i < data.length; i += 4) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          count++;
+        }
+      }
+
+      return [
+        Math.floor(r / Math.max(1, count)),
+        Math.floor(g / Math.max(1, count)),
+        Math.floor(b / Math.max(1, count)),
+      ];
+    }
+
+    function drawContain(ctx, source, targetSize) {
+      const scale = Math.min(targetSize / source.width, targetSize / source.height);
+      const dw = source.width * scale;
+      const dh = source.height * scale;
+      const dx = (targetSize - dw) / 2;
+      const dy = (targetSize - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
+    }
+
+    function drawCover(ctx, source, targetSize, overscan = 0) {
+      const scale = Math.max(targetSize / source.width, targetSize / source.height);
+      const dw = source.width * scale + overscan * 2;
+      const dh = source.height * scale + overscan * 2;
+      const dx = (targetSize - dw) / 2;
+      const dy = (targetSize - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
+    }
+
+    function squarePadAndResizeFrame(frame, targetSize = BLOCK_SIZE) {
+      if (frame.width <= 0 || frame.height <= 0) {
+        const empty = new Uint8ClampedArray(targetSize * targetSize * 4);
+        return { data: empty, width: targetSize, height: targetSize };
+      }
+
+      const sourceCanvas = frameToCanvas(frame);
+      const canvas = document.createElement("canvas");
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      const mode = GIF_SQUARE_FILL_MODE.toLowerCase().trim();
+
+      if (mode === "transparent") {
+        ctx.clearRect(0, 0, targetSize, targetSize);
+        drawContain(ctx, sourceCanvas, targetSize);
+        return {
+          data: ctx.getImageData(0, 0, targetSize, targetSize).data,
+          width: targetSize,
+          height: targetSize,
+        };
+      }
+
+      if (mode === "average") {
+        const avg = getAverageRgb(frame);
+        ctx.fillStyle = `rgb(${avg[0]},${avg[1]},${avg[2]})`;
+        ctx.fillRect(0, 0, targetSize, targetSize);
+      } else if (mode === "black") {
+        ctx.fillStyle = "rgb(0,0,0)";
+        ctx.fillRect(0, 0, targetSize, targetSize);
+      } else {
+        const avg = getAverageRgb(frame);
+
+        const visual = document.createElement("canvas");
+        visual.width = frame.width;
+        visual.height = frame.height;
+
+        const vctx = visual.getContext("2d", { willReadFrequently: true });
+        vctx.fillStyle = `rgb(${avg[0]},${avg[1]},${avg[2]})`;
+        vctx.fillRect(0, 0, frame.width, frame.height);
+        vctx.drawImage(sourceCanvas, 0, 0);
+
+        const blurRadius = Math.max(2, Math.floor(targetSize / 12));
+        ctx.save();
+        ctx.filter = `blur(${blurRadius}px)`;
+        drawCover(ctx, visual, targetSize, blurRadius);
+        ctx.restore();
+      }
+
+      drawContain(ctx, sourceCanvas, targetSize);
+
+      return {
+        data: ctx.getImageData(0, 0, targetSize, targetSize).data,
+        width: targetSize,
+        height: targetSize,
+      };
+    }
+
+    function adjustToFixedFrameCount(frames, durations, targetCount = FIXED_FRAME_COUNT) {
+      const originalCount = frames.length;
+
+      if (originalCount <= 0) {
+        throw new Error("替换 GIF 中没有可用帧");
+      }
+
+      const safeDurations = (durations?.length ? durations : new Array(originalCount).fill(100))
+        .slice(0, originalCount)
+        .map((duration) => safeDuration(duration, 100));
+
+      while (safeDurations.length < originalCount) {
+        safeDurations.push(safeDurations.at(-1) || 100);
+      }
+
+      if (originalCount === targetCount) {
+        return {
+          frames: frames.map(cloneFrame),
+          durations: safeDurations.slice(0, targetCount),
+        };
+      }
+
+      if (originalCount < targetCount) {
+        const newFrames = [];
+        const newDurations = [];
+
+        for (let i = 0; i < targetCount; i++) {
+          const floatIndex = i * (originalCount - 1) / Math.max(targetCount - 1, 1);
+          const lowerIndex = Math.floor(floatIndex);
+          const upperIndex = Math.min(lowerIndex + 1, originalCount - 1);
+          const fraction = floatIndex - lowerIndex;
+
+          if (lowerIndex === upperIndex) {
+            newFrames.push(cloneFrame(frames[lowerIndex]));
+            newDurations.push(safeDurations[lowerIndex]);
+          } else {
+            newFrames.push(blendFrames(frames[lowerIndex], frames[upperIndex], fraction));
+            const blendedDuration = Math.floor(
+              safeDurations[lowerIndex] * (1 - fraction) + safeDurations[upperIndex] * fraction
+            );
+            newDurations.push(safeDuration(blendedDuration, 100));
+          }
+        }
+
+        return { frames: newFrames, durations: newDurations };
+      }
+
+      const newFrames = [];
+      const newDurations = [];
+      const step = originalCount / targetCount;
+
+      for (let i = 0; i < targetCount; i++) {
+        const index = Math.min(Math.floor(i * step), originalCount - 1);
+        newFrames.push(cloneFrame(frames[index]));
+        newDurations.push(safeDurations[index]);
+      }
+
+      return { frames: newFrames, durations: newDurations };
+    }
+
+    function cloneFrame(frame) {
+      return {
+        data: new Uint8ClampedArray(frame.data),
+        width: frame.width,
+        height: frame.height,
+      };
+    }
+
+    function blendFrames(a, b, fraction) {
+      if (a.width !== b.width || a.height !== b.height) {
+        throw new Error("帧尺寸不一致，无法插值");
+      }
+
+      const data = new Uint8ClampedArray(a.data.length);
+      const inverse = 1 - fraction;
+
+      for (let i = 0; i < data.length; i++) {
+        data[i] = Math.round(a.data[i] * inverse + b.data[i] * fraction);
+      }
+
+      return {
+        data,
+        width: a.width,
+        height: a.height,
+      };
+    }
+
+    // ---------- 合成：优先 Web Worker 并行，失败则自动串行 ----------
+    async function composeAllFrames(frames, pixels, onProgress) {
+      if (window.Worker && window.Blob && window.URL) {
+        try {
+          return await composeFramesParallel(frames, pixels, onProgress);
+        } catch (error) {
+          console.warn("并行合成失败，切换串行：", error);
+          log(`日志：并行处理不可用，已切换到串行处理...`);
+          await nextTick();
+          return composeFramesSerial(frames, pixels, onProgress);
+        }
+      }
+
+      log("日志：当前浏览器不支持 Web Worker，已切换到串行处理...");
+      return composeFramesSerial(frames, pixels, onProgress);
+    }
+
+    async function composeFramesParallel(frames, pixels, onProgress) {
+      const workerScriptUrl = createComposeWorkerUrl();
+      const resultFrames = new Array(frames.length);
+      let completed = 0;
+
+      try {
+        for (let batchStart = 0; batchStart < frames.length; batchStart += MAX_WORKERS) {
+          const batchEnd = Math.min(batchStart + MAX_WORKERS, frames.length);
+          log(`日志：并行合成第 ${batchStart + 1}-${batchEnd}/${frames.length} 帧...`);
+
+          const jobs = [];
+
+          for (let frameIndex = batchStart; frameIndex < batchEnd; frameIndex++) {
+            jobs.push(
+              runComposeWorkerJob(workerScriptUrl, frameIndex, frames[frameIndex].data, pixels)
+                .then((result) => {
+                  completed++;
+                  onProgress(completed);
+                  return result;
+                })
+            );
+          }
+
+          const batchResults = await Promise.all(jobs);
+
+          for (const result of batchResults) {
+            resultFrames[result.frameIndex] = {
+              data: result.data,
+              width: BIG_SIZE,
+              height: BIG_SIZE,
+            };
+          }
+
+          await nextTick();
+        }
+
+        return resultFrames;
+      } finally {
+        URL.revokeObjectURL(workerScriptUrl);
+      }
+    }
+
+    function runComposeWorkerJob(workerScriptUrl, frameIndex, baseFrameData, pixels) {
+      return new Promise((resolve, reject) => {
+        const worker = new Worker(workerScriptUrl);
+
+        worker.onmessage = (event) => {
+          const { frameIndex: doneIndex, buffer } = event.data;
+          worker.terminate();
+          resolve({
+            frameIndex: doneIndex,
+            data: new Uint8ClampedArray(buffer),
+          });
+        };
+
+        worker.onerror = (error) => {
+          worker.terminate();
+          reject(error instanceof Error ? error : new Error(error.message || "Worker 合成失败"));
+        };
+
+        worker.postMessage({
+          frameIndex,
+          baseFrameData,
+          pixels,
+          outputRes: OUTPUT_RES,
+          blockSize: BLOCK_SIZE,
+          colorInfluence: COLOR_INFLUENCE,
+        });
+      });
+    }
+
+    async function composeFramesSerial(frames, pixels, onProgress) {
+      const resultFrames = [];
+      let completed = 0;
+
+      for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
+        log(`日志：串行合成第 ${frameIndex + 1}/${frames.length} 帧...`);
+        const data = composeFrameData(frames[frameIndex].data, pixels, OUTPUT_RES, BLOCK_SIZE, COLOR_INFLUENCE);
+        resultFrames.push({
+          data,
+          width: BIG_SIZE,
+          height: BIG_SIZE,
+        });
+
+        completed++;
+        onProgress(completed);
+        await nextTick();
+      }
+
+      return resultFrames;
+    }
+
+    function createComposeWorkerUrl() {
+      const code = `
+        self.onmessage = function(event) {
+          const payload = event.data;
+          const output = composeFrameData(
+            payload.baseFrameData,
+            payload.pixels,
+            payload.outputRes,
+            payload.blockSize,
+            payload.colorInfluence
+          );
+
+          self.postMessage({
+            frameIndex: payload.frameIndex,
+            buffer: output.buffer
+          }, [output.buffer]);
+        };
+
+        function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence) {
+          const bigSize = outputRes * blockSize;
+          const output = new Uint8ClampedArray(bigSize * bigSize * 4);
+          const blockPixelCount = blockSize * blockSize;
+
+          const baseR = new Float32Array(blockPixelCount);
+          const baseG = new Float32Array(blockPixelCount);
+          const baseB = new Float32Array(blockPixelCount);
+          const alpha = new Float32Array(blockPixelCount);
+          const gray = new Float32Array(blockPixelCount);
+
+          let graySum = 0;
+          let visibleCount = 0;
+
+          for (let i = 0, p = 0; i < baseFrameData.length; i += 4, p++) {
+            const r = baseFrameData[i] / 255;
+            const g = baseFrameData[i + 1] / 255;
+            const b = baseFrameData[i + 2] / 255;
+            const a = baseFrameData[i + 3] / 255;
+            const y = r * 0.299 + g * 0.587 + b * 0.114;
+
+            baseR[p] = r;
+            baseG[p] = g;
+            baseB[p] = b;
+            alpha[p] = a;
+            gray[p] = y;
+
+            if (a > 0.01) {
+              graySum += y;
+              visibleCount++;
+            }
+          }
+
+          if (visibleCount === 0) {
+            for (let p = 0; p < gray.length; p++) graySum += gray[p];
+            visibleCount = gray.length;
+          }
+
+          const meanGray = graySum / Math.max(1, visibleCount);
+          const factor = Math.min(2.0, 1.0 / Math.max(meanGray, 1e-6));
+
+          for (let py = 0; py < outputRes; py++) {
+            for (let px = 0; px < outputRes; px++) {
+              const pixelIndex = (py * outputRes + px) * 4;
+              const pixelR = pixels[pixelIndex] / 255;
+              const pixelG = pixels[pixelIndex + 1] / 255;
+              const pixelB = pixels[pixelIndex + 2] / 255;
+
+              for (let by = 0; by < blockSize; by++) {
+                const outY = py * blockSize + by;
+
+                for (let bx = 0; bx < blockSize; bx++) {
+                  const blockIndex = by * blockSize + bx;
+                  const outX = px * blockSize + bx;
+                  const outIndex = (outY * bigSize + outX) * 4;
+
+                  const a = alpha[blockIndex];
+                  const mask = Math.min(1, Math.max(0, gray[blockIndex] * factor)) * a;
+                  const influence = colorInfluence * mask;
+
+                  const blendedR = baseR[blockIndex] * (1 - influence) + pixelR * influence;
+                  const blendedG = baseG[blockIndex] * (1 - influence) + pixelG * influence;
+                  const blendedB = baseB[blockIndex] * (1 - influence) + pixelB * influence;
+
+                  output[outIndex] = Math.max(0, Math.min(255, Math.round((blendedR * a + pixelR * (1 - a)) * 255)));
+                  output[outIndex + 1] = Math.max(0, Math.min(255, Math.round((blendedG * a + pixelG * (1 - a)) * 255)));
+                  output[outIndex + 2] = Math.max(0, Math.min(255, Math.round((blendedB * a + pixelB * (1 - a)) * 255)));
+                  output[outIndex + 3] = 255;
+                }
+              }
+            }
+          }
+
+          return output;
+        }
+      `;
+
+      return URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+    }
+
+    function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence) {
+      const bigSize = outputRes * blockSize;
+      const output = new Uint8ClampedArray(bigSize * bigSize * 4);
+      const blockPixelCount = blockSize * blockSize;
+
+      const baseR = new Float32Array(blockPixelCount);
+      const baseG = new Float32Array(blockPixelCount);
+      const baseB = new Float32Array(blockPixelCount);
+      const alpha = new Float32Array(blockPixelCount);
+      const gray = new Float32Array(blockPixelCount);
+
+      let graySum = 0;
+      let visibleCount = 0;
+
+      for (let i = 0, p = 0; i < baseFrameData.length; i += 4, p++) {
+        const r = baseFrameData[i] / 255;
+        const g = baseFrameData[i + 1] / 255;
+        const b = baseFrameData[i + 2] / 255;
+        const a = baseFrameData[i + 3] / 255;
+        const y = r * 0.299 + g * 0.587 + b * 0.114;
+
+        baseR[p] = r;
+        baseG[p] = g;
+        baseB[p] = b;
+        alpha[p] = a;
+        gray[p] = y;
+
+        if (a > 0.01) {
+          graySum += y;
+          visibleCount++;
+        }
+      }
+
+      if (visibleCount === 0) {
+        for (let p = 0; p < gray.length; p++) graySum += gray[p];
+        visibleCount = gray.length;
+      }
+
+      const meanGray = graySum / Math.max(1, visibleCount);
+      const factor = Math.min(2.0, 1.0 / Math.max(meanGray, 1e-6));
+
+      for (let py = 0; py < outputRes; py++) {
+        for (let px = 0; px < outputRes; px++) {
+          const pixelIndex = (py * outputRes + px) * 4;
+          const pixelR = pixels[pixelIndex] / 255;
+          const pixelG = pixels[pixelIndex + 1] / 255;
+          const pixelB = pixels[pixelIndex + 2] / 255;
+
+          for (let by = 0; by < blockSize; by++) {
+            const outY = py * blockSize + by;
+
+            for (let bx = 0; bx < blockSize; bx++) {
+              const blockIndex = by * blockSize + bx;
+              const outX = px * blockSize + bx;
+              const outIndex = (outY * bigSize + outX) * 4;
+
+              const a = alpha[blockIndex];
+              const mask = Math.min(1, Math.max(0, gray[blockIndex] * factor)) * a;
+              const influence = colorInfluence * mask;
+
+              const blendedR = baseR[blockIndex] * (1 - influence) + pixelR * influence;
+              const blendedG = baseG[blockIndex] * (1 - influence) + pixelG * influence;
+              const blendedB = baseB[blockIndex] * (1 - influence) + pixelB * influence;
+
+              output[outIndex] = Math.max(0, Math.min(255, Math.round((blendedR * a + pixelR * (1 - a)) * 255)));
+              output[outIndex + 1] = Math.max(0, Math.min(255, Math.round((blendedG * a + pixelG * (1 - a)) * 255)));
+              output[outIndex + 2] = Math.max(0, Math.min(255, Math.round((blendedB * a + pixelB * (1 - a)) * 255)));
+              output[outIndex + 3] = 255;
+            }
+          }
+        }
+      }
+
+      return output;
+    }
+
+    // ---------- GIF 编码：生成 bytes，不落盘 ----------
+    async function encodeGifBytes(frames, durations, width, height, options = {}) {
+      if (!frames.length) {
+        throw new Error("没有可编码的 GIF 帧");
+      }
+
+      const gif = GIFEncoder();
+      const format = "rgb444";
+
+      for (let i = 0; i < frames.length; i++) {
+        const frame = frames[i];
+
+        if (frame.width !== width || frame.height !== height) {
+          throw new Error(`GIF 编码帧尺寸不一致：期望 ${width}x${height}，实际 ${frame.width}x${frame.height}`);
+        }
+
+        const data = frame.data;
+        const palette = quantize(data, GIF_COMPRESS_COLORS, { format });
+        const index = applyPalette(data, palette, format);
+        gif.writeFrame(index, width, height, {
+          palette,
+          delay: safeDuration(durations[i] || durations[0] || 100, 100),
+        });
+
+        if (options.yieldEveryFrame) {
+          await nextTick();
+        }
+      }
+
+      gif.finish();
+      return gif.bytesView();
+    }
+  </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"df358ff767b04bcd8e3e7d3b1f6f5c6e","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
