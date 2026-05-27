@@ -268,7 +268,15 @@
     const BLOCK_SIZE = 60;
     const MAX_WORKERS = 8;
     const FIXED_FRAME_COUNT = 24;
-    const COLOR_INFLUENCE = 0.75;
+    const COLOR_INFLUENCE = 0.8;
+
+    // v2 修正：
+    // 1. 样本 GIF 只提供稳定亮度细节，目标色主要锁定原图像素色，避免帧间跳色。
+    // 2. 对样本 GIF 亮度细节做全局统计和统一对比度增强，避免每帧单独归一化导致忽明忽暗。
+    const BLOCK_CONTRAST_BOOST = 1.65;
+    const DETAIL_MIN = 0.32;
+    const DETAIL_MAX = 2.05;
+    const SAMPLE_HUE_RETAIN = 0.06;
 
     const GIF_COMPRESS_COLORS = 256;
     const GIF_MIN_DURATION_MS = 20;
@@ -433,18 +441,24 @@
           log(`日志：默认替换动画帧数 ${replacement.originalFrameCount}，固定输出 ${numFrames} 帧`);
         }
 
-        log(`日志：开始合成动画，样本 GIF 帧数=${numFrames}，并行线程=${MAX_WORKERS}...`);
+        const stableStats = computeStableFrameStats(frames);
+        log(
+          `日志：开始合成动画，样本 GIF 帧数=${numFrames}，并行线程=${MAX_WORKERS}，` +
+          `对比度增强=${BLOCK_CONTRAST_BOOST}，色彩稳定模式=开启...`
+        );
 
-        const composedFrames = await composeAllFrames(frames, pixels, (completed) => {
+        const composedFrames = await composeAllFrames(frames, pixels, stableStats, (completed) => {
           const value = Math.floor((completed / numFrames) * 95);
           setProgress(value, true);
         });
         ensureCurrentRun(runId);
 
         setProgress(96, true);
-        log("日志：编码最终 GIF 到内存 Blob...");
+        log("日志：使用全局调色板编码最终 GIF，减少帧间跳色...");
         const bytes = await encodeGifBytes(composedFrames, new Array(numFrames).fill(frameDurationMs), BIG_SIZE, BIG_SIZE, {
           yieldEveryFrame: true,
+          globalPalette: true,
+          paletteSampleStep: 8,
         });
         ensureCurrentRun(runId);
 
@@ -953,23 +967,86 @@
     }
 
     // ---------- 合成：优先 Web Worker 并行，失败则自动串行 ----------
-    async function composeAllFrames(frames, pixels, onProgress) {
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function clamp01(value) {
+      return clamp(value, 0, 1);
+    }
+
+    function computeStableFrameStats(frames) {
+      let graySum = 0;
+      let graySqSum = 0;
+      let rSum = 0;
+      let gSum = 0;
+      let bSum = 0;
+      let count = 0;
+
+      for (const frame of frames) {
+        const data = frame.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const a = data[i + 3] / 255;
+          if (a <= 0.01) continue;
+
+          const r = data[i] / 255;
+          const g = data[i + 1] / 255;
+          const b = data[i + 2] / 255;
+          const y = r * 0.299 + g * 0.587 + b * 0.114;
+
+          graySum += y;
+          graySqSum += y * y;
+          rSum += r;
+          gSum += g;
+          bSum += b;
+          count++;
+        }
+      }
+
+      if (count === 0) {
+        count = 1;
+        graySum = 0.5;
+        graySqSum = 0.25;
+        rSum = 0.5;
+        gSum = 0.5;
+        bSum = 0.5;
+      }
+
+      const meanGray = graySum / count;
+      const variance = Math.max(0, graySqSum / count - meanGray * meanGray);
+      const stdGray = Math.max(0.08, Math.sqrt(variance));
+
+      return {
+        meanGray: clamp(meanGray, 0.06, 0.94),
+        stdGray,
+        avgR: clamp01(rSum / count),
+        avgG: clamp01(gSum / count),
+        avgB: clamp01(bSum / count),
+        contrastBoost: BLOCK_CONTRAST_BOOST,
+        detailMin: DETAIL_MIN,
+        detailMax: DETAIL_MAX,
+        sampleHueRetain: SAMPLE_HUE_RETAIN,
+      };
+    }
+
+    async function composeAllFrames(frames, pixels, stableStats, onProgress) {
       if (window.Worker && window.Blob && window.URL) {
         try {
-          return await composeFramesParallel(frames, pixels, onProgress);
+          return await composeFramesParallel(frames, pixels, stableStats, onProgress);
         } catch (error) {
           console.warn("并行合成失败，切换串行：", error);
           log(`日志：并行处理不可用，已切换到串行处理...`);
           await nextTick();
-          return composeFramesSerial(frames, pixels, onProgress);
+          return composeFramesSerial(frames, pixels, stableStats, onProgress);
         }
       }
 
       log("日志：当前浏览器不支持 Web Worker，已切换到串行处理...");
-      return composeFramesSerial(frames, pixels, onProgress);
+      return composeFramesSerial(frames, pixels, stableStats, onProgress);
     }
 
-    async function composeFramesParallel(frames, pixels, onProgress) {
+    async function composeFramesParallel(frames, pixels, stableStats, onProgress) {
       const workerScriptUrl = createComposeWorkerUrl();
       const resultFrames = new Array(frames.length);
       let completed = 0;
@@ -983,7 +1060,7 @@
 
           for (let frameIndex = batchStart; frameIndex < batchEnd; frameIndex++) {
             jobs.push(
-              runComposeWorkerJob(workerScriptUrl, frameIndex, frames[frameIndex].data, pixels)
+              runComposeWorkerJob(workerScriptUrl, frameIndex, frames[frameIndex].data, pixels, stableStats)
                 .then((result) => {
                   completed++;
                   onProgress(completed);
@@ -1011,7 +1088,7 @@
       }
     }
 
-    function runComposeWorkerJob(workerScriptUrl, frameIndex, baseFrameData, pixels) {
+    function runComposeWorkerJob(workerScriptUrl, frameIndex, baseFrameData, pixels, stableStats) {
       return new Promise((resolve, reject) => {
         const worker = new Worker(workerScriptUrl);
 
@@ -1036,17 +1113,25 @@
           outputRes: OUTPUT_RES,
           blockSize: BLOCK_SIZE,
           colorInfluence: COLOR_INFLUENCE,
+          stableStats,
         });
       });
     }
 
-    async function composeFramesSerial(frames, pixels, onProgress) {
+    async function composeFramesSerial(frames, pixels, stableStats, onProgress) {
       const resultFrames = [];
       let completed = 0;
 
       for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
         log(`日志：串行合成第 ${frameIndex + 1}/${frames.length} 帧...`);
-        const data = composeFrameData(frames[frameIndex].data, pixels, OUTPUT_RES, BLOCK_SIZE, COLOR_INFLUENCE);
+        const data = composeFrameData(
+          frames[frameIndex].data,
+          pixels,
+          OUTPUT_RES,
+          BLOCK_SIZE,
+          COLOR_INFLUENCE,
+          stableStats
+        );
         resultFrames.push({
           data,
           width: BIG_SIZE,
@@ -1070,7 +1155,8 @@
             payload.pixels,
             payload.outputRes,
             payload.blockSize,
-            payload.colorInfluence
+            payload.colorInfluence,
+            payload.stableStats
           );
 
           self.postMessage({
@@ -1079,46 +1165,44 @@
           }, [output.buffer]);
         };
 
-        function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence) {
+        function clamp(value, min, max) {
+          return Math.min(max, Math.max(min, value));
+        }
+
+        function clamp01(value) {
+          return clamp(value, 0, 1);
+        }
+
+        function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence, stableStats) {
           const bigSize = outputRes * blockSize;
           const output = new Uint8ClampedArray(bigSize * bigSize * 4);
           const blockPixelCount = blockSize * blockSize;
 
-          const baseR = new Float32Array(blockPixelCount);
-          const baseG = new Float32Array(blockPixelCount);
-          const baseB = new Float32Array(blockPixelCount);
           const alpha = new Float32Array(blockPixelCount);
           const gray = new Float32Array(blockPixelCount);
 
-          let graySum = 0;
-          let visibleCount = 0;
+          const stats = stableStats || {};
+          const meanGray = clamp(stats.meanGray ?? 0.5, 0.06, 0.94);
+          const contrastBoost = stats.contrastBoost ?? 1.65;
+          const detailMin = stats.detailMin ?? 0.32;
+          const detailMax = stats.detailMax ?? 2.05;
+          const sampleHueRetain = clamp(stats.sampleHueRetain ?? 0.06, 0, 0.35);
 
+          const stableSampleR = clamp01(stats.avgR ?? 0.5);
+          const stableSampleG = clamp01(stats.avgG ?? 0.5);
+          const stableSampleB = clamp01(stats.avgB ?? 0.5);
+
+          // 这里只保留样本 GIF 的亮度细节，不再让每一帧的原始 RGB 大幅参与调色。
+          // 这样可以解决“颜色一直跳”的问题；全局 meanGray 也避免每帧单独归一化造成闪烁。
           for (let i = 0, p = 0; i < baseFrameData.length; i += 4, p++) {
             const r = baseFrameData[i] / 255;
             const g = baseFrameData[i + 1] / 255;
             const b = baseFrameData[i + 2] / 255;
             const a = baseFrameData[i + 3] / 255;
-            const y = r * 0.299 + g * 0.587 + b * 0.114;
 
-            baseR[p] = r;
-            baseG[p] = g;
-            baseB[p] = b;
             alpha[p] = a;
-            gray[p] = y;
-
-            if (a > 0.01) {
-              graySum += y;
-              visibleCount++;
-            }
+            gray[p] = r * 0.299 + g * 0.587 + b * 0.114;
           }
-
-          if (visibleCount === 0) {
-            for (let p = 0; p < gray.length; p++) graySum += gray[p];
-            visibleCount = gray.length;
-          }
-
-          const meanGray = graySum / Math.max(1, visibleCount);
-          const factor = Math.min(2.0, 1.0 / Math.max(meanGray, 1e-6));
 
           for (let py = 0; py < outputRes; py++) {
             for (let px = 0; px < outputRes; px++) {
@@ -1136,12 +1220,35 @@
                   const outIndex = (outY * bigSize + outX) * 4;
 
                   const a = alpha[blockIndex];
-                  const mask = Math.min(1, Math.max(0, gray[blockIndex] * factor)) * a;
-                  const influence = colorInfluence * mask;
 
-                  const blendedR = baseR[blockIndex] * (1 - influence) + pixelR * influence;
-                  const blendedG = baseG[blockIndex] * (1 - influence) + pixelG * influence;
-                  const blendedB = baseB[blockIndex] * (1 - influence) + pixelB * influence;
+                  const contrastGray = clamp01(meanGray + (gray[blockIndex] - meanGray) * contrastBoost);
+                  const detail = clamp(
+                    contrastGray / Math.max(meanGray, 0.08),
+                    detailMin,
+                    detailMax
+                  );
+
+                  const sourceDetailR = clamp01(pixelR * detail);
+                  const sourceDetailG = clamp01(pixelG * detail);
+                  const sourceDetailB = clamp01(pixelB * detail);
+
+                  const sampleDetailR = clamp01(stableSampleR * detail);
+                  const sampleDetailG = clamp01(stableSampleG * detail);
+                  const sampleDetailB = clamp01(stableSampleB * detail);
+
+                  const stableR = sourceDetailR * colorInfluence + sampleDetailR * (1 - colorInfluence);
+                  const stableG = sourceDetailG * colorInfluence + sampleDetailG * (1 - colorInfluence);
+                  const stableB = sourceDetailB * colorInfluence + sampleDetailB * (1 - colorInfluence);
+
+                  const retainedR = baseFrameData[blockIndex * 4] / 255;
+                  const retainedG = baseFrameData[blockIndex * 4 + 1] / 255;
+                  const retainedB = baseFrameData[blockIndex * 4 + 2] / 255;
+
+                  // 少量保留样本 GIF 原色，防止动画块完全变成纯单色；
+                  // 保留比例很低，所以不会再出现明显帧间跳色。
+                  const blendedR = stableR * (1 - sampleHueRetain) + retainedR * sampleHueRetain;
+                  const blendedG = stableG * (1 - sampleHueRetain) + retainedG * sampleHueRetain;
+                  const blendedB = stableB * (1 - sampleHueRetain) + retainedB * sampleHueRetain;
 
                   output[outIndex] = Math.max(0, Math.min(255, Math.round((blendedR * a + pixelR * (1 - a)) * 255)));
                   output[outIndex + 1] = Math.max(0, Math.min(255, Math.round((blendedG * a + pixelG * (1 - a)) * 255)));
@@ -1159,46 +1266,34 @@
       return URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
     }
 
-    function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence) {
+    function composeFrameData(baseFrameData, pixels, outputRes, blockSize, colorInfluence, stableStats) {
       const bigSize = outputRes * blockSize;
       const output = new Uint8ClampedArray(bigSize * bigSize * 4);
       const blockPixelCount = blockSize * blockSize;
 
-      const baseR = new Float32Array(blockPixelCount);
-      const baseG = new Float32Array(blockPixelCount);
-      const baseB = new Float32Array(blockPixelCount);
       const alpha = new Float32Array(blockPixelCount);
       const gray = new Float32Array(blockPixelCount);
 
-      let graySum = 0;
-      let visibleCount = 0;
+      const stats = stableStats || {};
+      const meanGray = clamp(stats.meanGray ?? 0.5, 0.06, 0.94);
+      const contrastBoost = stats.contrastBoost ?? BLOCK_CONTRAST_BOOST;
+      const detailMin = stats.detailMin ?? DETAIL_MIN;
+      const detailMax = stats.detailMax ?? DETAIL_MAX;
+      const sampleHueRetain = clamp(stats.sampleHueRetain ?? SAMPLE_HUE_RETAIN, 0, 0.35);
+
+      const stableSampleR = clamp01(stats.avgR ?? 0.5);
+      const stableSampleG = clamp01(stats.avgG ?? 0.5);
+      const stableSampleB = clamp01(stats.avgB ?? 0.5);
 
       for (let i = 0, p = 0; i < baseFrameData.length; i += 4, p++) {
         const r = baseFrameData[i] / 255;
         const g = baseFrameData[i + 1] / 255;
         const b = baseFrameData[i + 2] / 255;
         const a = baseFrameData[i + 3] / 255;
-        const y = r * 0.299 + g * 0.587 + b * 0.114;
 
-        baseR[p] = r;
-        baseG[p] = g;
-        baseB[p] = b;
         alpha[p] = a;
-        gray[p] = y;
-
-        if (a > 0.01) {
-          graySum += y;
-          visibleCount++;
-        }
+        gray[p] = r * 0.299 + g * 0.587 + b * 0.114;
       }
-
-      if (visibleCount === 0) {
-        for (let p = 0; p < gray.length; p++) graySum += gray[p];
-        visibleCount = gray.length;
-      }
-
-      const meanGray = graySum / Math.max(1, visibleCount);
-      const factor = Math.min(2.0, 1.0 / Math.max(meanGray, 1e-6));
 
       for (let py = 0; py < outputRes; py++) {
         for (let px = 0; px < outputRes; px++) {
@@ -1216,12 +1311,33 @@
               const outIndex = (outY * bigSize + outX) * 4;
 
               const a = alpha[blockIndex];
-              const mask = Math.min(1, Math.max(0, gray[blockIndex] * factor)) * a;
-              const influence = colorInfluence * mask;
 
-              const blendedR = baseR[blockIndex] * (1 - influence) + pixelR * influence;
-              const blendedG = baseG[blockIndex] * (1 - influence) + pixelG * influence;
-              const blendedB = baseB[blockIndex] * (1 - influence) + pixelB * influence;
+              const contrastGray = clamp01(meanGray + (gray[blockIndex] - meanGray) * contrastBoost);
+              const detail = clamp(
+                contrastGray / Math.max(meanGray, 0.08),
+                detailMin,
+                detailMax
+              );
+
+              const sourceDetailR = clamp01(pixelR * detail);
+              const sourceDetailG = clamp01(pixelG * detail);
+              const sourceDetailB = clamp01(pixelB * detail);
+
+              const sampleDetailR = clamp01(stableSampleR * detail);
+              const sampleDetailG = clamp01(stableSampleG * detail);
+              const sampleDetailB = clamp01(stableSampleB * detail);
+
+              const stableR = sourceDetailR * colorInfluence + sampleDetailR * (1 - colorInfluence);
+              const stableG = sourceDetailG * colorInfluence + sampleDetailG * (1 - colorInfluence);
+              const stableB = sourceDetailB * colorInfluence + sampleDetailB * (1 - colorInfluence);
+
+              const retainedR = baseFrameData[blockIndex * 4] / 255;
+              const retainedG = baseFrameData[blockIndex * 4 + 1] / 255;
+              const retainedB = baseFrameData[blockIndex * 4 + 2] / 255;
+
+              const blendedR = stableR * (1 - sampleHueRetain) + retainedR * sampleHueRetain;
+              const blendedG = stableG * (1 - sampleHueRetain) + retainedG * sampleHueRetain;
+              const blendedB = stableB * (1 - sampleHueRetain) + retainedB * sampleHueRetain;
 
               output[outIndex] = Math.max(0, Math.min(255, Math.round((blendedR * a + pixelR * (1 - a)) * 255)));
               output[outIndex + 1] = Math.max(0, Math.min(255, Math.round((blendedG * a + pixelG * (1 - a)) * 255)));
@@ -1236,6 +1352,32 @@
     }
 
     // ---------- GIF 编码：生成 bytes，不落盘 ----------
+    function buildGlobalPaletteSample(frames, step = 8) {
+      const safeStep = Math.max(1, Number.parseInt(step || 8, 10));
+      let sampleCount = 0;
+
+      for (const frame of frames) {
+        sampleCount += Math.ceil((frame.data.length / 4) / safeStep);
+      }
+
+      const sample = new Uint8ClampedArray(sampleCount * 4);
+      let write = 0;
+
+      for (const frame of frames) {
+        const data = frame.data;
+
+        for (let i = 0; i < data.length; i += 4 * safeStep) {
+          sample[write] = data[i];
+          sample[write + 1] = data[i + 1];
+          sample[write + 2] = data[i + 2];
+          sample[write + 3] = 255;
+          write += 4;
+        }
+      }
+
+      return sample;
+    }
+
     async function encodeGifBytes(frames, durations, width, height, options = {}) {
       if (!frames.length) {
         throw new Error("没有可编码的 GIF 帧");
@@ -1243,6 +1385,13 @@
 
       const gif = GIFEncoder();
       const format = "rgb444";
+      let sharedPalette = null;
+
+      if (options.globalPalette) {
+        const sample = buildGlobalPaletteSample(frames, options.paletteSampleStep || 8);
+        sharedPalette = quantize(sample, GIF_COMPRESS_COLORS, { format });
+        await nextTick();
+      }
 
       for (let i = 0; i < frames.length; i++) {
         const frame = frames[i];
@@ -1252,7 +1401,7 @@
         }
 
         const data = frame.data;
-        const palette = quantize(data, GIF_COMPRESS_COLORS, { format });
+        const palette = sharedPalette || quantize(data, GIF_COMPRESS_COLORS, { format });
         const index = applyPalette(data, palette, format);
         gif.writeFrame(index, width, height, {
           palette,
