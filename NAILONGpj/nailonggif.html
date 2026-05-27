@@ -282,7 +282,7 @@
     const GIF_MIN_DURATION_MS = 20;
 
     // "blur" | "average" | "transparent" | "black"
-    const GIF_SQUARE_FILL_MODE = "blur";
+    const GIF_SQUARE_FILL_MODE = "transparent";   // 修改为 transparent，解决透明 GIF 变白问题
 
     const BIG_SIZE = OUTPUT_RES * BLOCK_SIZE;
 
@@ -551,7 +551,6 @@
       return new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    // ---------- 原图处理：等价于 convert("RGB").resize((20,20), NEAREST) ----------
     async function loadSourcePixels(file) {
       const bitmap = await createImageBitmap(file);
       const canvas = document.createElement("canvas");
@@ -574,7 +573,6 @@
       return Math.max(GIF_MIN_DURATION_MS, duration);
     }
 
-    // ---------- 默认替换 GIF：等价于 create_default_replacement_gif ----------
     function createDefaultReplacementFrames(size = BLOCK_SIZE, frameCount = FIXED_FRAME_COUNT) {
       const frames = [];
       const duration = 100;
@@ -612,7 +610,6 @@
       };
     }
 
-    // ---------- GIF 解码、全帧重建、补方、压缩并重新读取 ----------
     async function loadReplacementFrames(gifFile) {
       if (!gifFile) {
         return createDefaultReplacementFrames();
@@ -694,7 +691,6 @@
             const patchIndex = (y * dims.width + x) * 4;
             const alpha = patch[patchIndex + 3];
 
-            // 透明像素不覆盖历史画布，更符合 GIF 透明色语义。
             if (alpha === 0) continue;
 
             const targetX = dims.left + x;
@@ -767,35 +763,29 @@
       return canvas;
     }
 
+    // ==================== 修改后的 getAverageRgb（更尊重透明度） ====================
     function getAverageRgb(frame) {
       const data = frame.data;
-      let r = 0;
-      let g = 0;
-      let b = 0;
-      let count = 0;
+      let r = 0, g = 0, b = 0, count = 0;
 
       for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] > 8) {
-          r += data[i];
-          g += data[i + 1];
-          b += data[i + 2];
-          count++;
+        const alpha = data[i + 3];
+        if (alpha > 30) {
+          r += data[i] * (alpha / 255);
+          g += data[i + 1] * (alpha / 255);
+          b += data[i + 2] * (alpha / 255);
+          count += alpha / 255;
         }
       }
 
-      if (count === 0) {
-        for (let i = 0; i < data.length; i += 4) {
-          r += data[i];
-          g += data[i + 1];
-          b += data[i + 2];
-          count++;
-        }
+      if (count < 1) {
+        return [128, 128, 128];
       }
 
       return [
-        Math.floor(r / Math.max(1, count)),
-        Math.floor(g / Math.max(1, count)),
-        Math.floor(b / Math.max(1, count)),
+        Math.floor(r / count),
+        Math.floor(g / count),
+        Math.floor(b / count),
       ];
     }
 
@@ -817,6 +807,7 @@
       ctx.drawImage(source, dx, dy, dw, dh);
     }
 
+    // ==================== 修改后的 squarePadAndResizeFrame（优先保留透明度） ====================
     function squarePadAndResizeFrame(frame, targetSize = BLOCK_SIZE) {
       if (frame.width <= 0 || frame.height <= 0) {
         const empty = new Uint8ClampedArray(targetSize * targetSize * 4);
@@ -833,10 +824,12 @@
       ctx.imageSmoothingQuality = "high";
 
       const mode = GIF_SQUARE_FILL_MODE.toLowerCase().trim();
+      const hasTransparency = frame.data.some((v, i) => i % 4 === 3 && v < 255);
 
-      if (mode === "transparent") {
+      if (mode === "transparent" || hasTransparency) {
         ctx.clearRect(0, 0, targetSize, targetSize);
         drawContain(ctx, sourceCanvas, targetSize);
+        
         return {
           data: ctx.getImageData(0, 0, targetSize, targetSize).data,
           width: targetSize,
@@ -853,7 +846,6 @@
         ctx.fillRect(0, 0, targetSize, targetSize);
       } else {
         const avg = getAverageRgb(frame);
-
         const visual = document.createElement("canvas");
         visual.width = frame.width;
         visual.height = frame.height;
@@ -966,7 +958,6 @@
       };
     }
 
-    // ---------- 合成：优先 Web Worker 并行，失败则自动串行 ----------
     function clamp(value, min, max) {
       return Math.min(max, Math.max(min, value));
     }
@@ -1192,8 +1183,6 @@
           const stableSampleG = clamp01(stats.avgG ?? 0.5);
           const stableSampleB = clamp01(stats.avgB ?? 0.5);
 
-          // 这里只保留样本 GIF 的亮度细节，不再让每一帧的原始 RGB 大幅参与调色。
-          // 这样可以解决“颜色一直跳”的问题；全局 meanGray 也避免每帧单独归一化造成闪烁。
           for (let i = 0, p = 0; i < baseFrameData.length; i += 4, p++) {
             const r = baseFrameData[i] / 255;
             const g = baseFrameData[i + 1] / 255;
@@ -1244,8 +1233,6 @@
                   const retainedG = baseFrameData[blockIndex * 4 + 1] / 255;
                   const retainedB = baseFrameData[blockIndex * 4 + 2] / 255;
 
-                  // 少量保留样本 GIF 原色，防止动画块完全变成纯单色；
-                  // 保留比例很低，所以不会再出现明显帧间跳色。
                   const blendedR = stableR * (1 - sampleHueRetain) + retainedR * sampleHueRetain;
                   const blendedG = stableG * (1 - sampleHueRetain) + retainedG * sampleHueRetain;
                   const blendedB = stableB * (1 - sampleHueRetain) + retainedB * sampleHueRetain;
@@ -1351,7 +1338,6 @@
       return output;
     }
 
-    // ---------- GIF 编码：生成 bytes，不落盘 ----------
     function buildGlobalPaletteSample(frames, step = 8) {
       const safeStep = Math.max(1, Number.parseInt(step || 8, 10));
       let sampleCount = 0;
@@ -1417,7 +1403,5 @@
       return gif.bytesView();
     }
   </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"df358ff767b04bcd8e3e7d3b1f6f5c6e","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
