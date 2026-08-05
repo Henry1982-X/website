@@ -216,7 +216,7 @@
           <button class="btn btn-primary" id="convertBtn" disabled>转换</button>
           <button class="btn btn-secondary" id="saveBtn" disabled>保存</button>
         </div>
-        <div class="status" id="status" role="status" aria-live="polite">目标为 10 KB；优先保留尺寸，必要时按比例降低分辨率与颜色数量。</div>
+        <div class="status" id="status" role="status" aria-live="polite">目标不超过 20 KB；始终使用完整自适应调色板，仅在必要时等比降低分辨率。</div>
       </section>
 
       <section class="preview-area" aria-label="图片预览区">
@@ -245,7 +245,7 @@
   </div>
 
   <script>
-    const TARGET_BYTES = 10 * 1024;
+    const TARGET_BYTES = 20 * 1024;
     const MAX_PIXELS = 40_000_000;
     const state = { file: null, imageData: null, gifBlob: null, outputUrl: null };
 
@@ -412,11 +412,19 @@
       throw new Error('TIFF Deflate 数据无法解压。');
     }
 
-    function buildPalette(data, wanted) {
-      const pixels = data.length / 4, stride = Math.max(1, Math.floor(pixels / 30000)), points = [];
-      for (let p = 0; p < pixels; p += stride) { const q = p * 4, a = data[q+3] / 255; points.push([Math.round(data[q]*a + 255*(1-a)), Math.round(data[q+1]*a + 255*(1-a)), Math.round(data[q+2]*a + 255*(1-a))]); }
+    function buildPalette(data, wanted = 256) {
+      const pixels = data.length / 4, stride = Math.max(1, Math.floor(pixels / 65536)), points = [], anchors = [];
+      const extrema = Array.from({length: 10}, () => ({score: Infinity, color: null}));
+      for (let p = 0; p < pixels; p += stride) {
+        const q = p * 4, a = data[q+3] / 255;
+        const color = [Math.round(data[q]*a + 255*(1-a)), Math.round(data[q+1]*a + 255*(1-a)), Math.round(data[q+2]*a + 255*(1-a))];
+        const [r,g,b] = color, chroma = Math.max(r,g,b)-Math.min(r,g,b), luminance = .2126*r+.7152*g+.0722*b;
+        [r,-r,g,-g,b,-b,luminance,-luminance,chroma,-chroma].forEach((value,i) => { if(value < extrema[i].score) extrema[i] = {score:value,color}; });
+        points.push(color);
+      }
+      for (const item of extrema) if(item.color && !anchors.some((p)=>p[0]===item.color[0]&&p[1]===item.color[1]&&p[2]===item.color[2])) anchors.push(item.color);
       let boxes = [{ points }];
-      while (boxes.length < wanted) {
+      while (boxes.length < Math.max(1, wanted - anchors.length)) {
         let best = -1, channel = 0, score = -1;
         boxes.forEach((box, i) => {
           if (box.points.length < 2) return;
@@ -426,7 +434,8 @@
         const chosen = boxes.splice(best, 1)[0]; chosen.points.sort((a,b) => a[channel]-b[channel]);
         const mid = chosen.points.length >> 1; boxes.push({points:chosen.points.slice(0,mid)}, {points:chosen.points.slice(mid)});
       }
-      return boxes.map((box) => { const sum = box.points.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]); const n=box.points.length||1; return [Math.round(sum[0]/n),Math.round(sum[1]/n),Math.round(sum[2]/n)]; });
+      const palette = anchors.concat(boxes.map((box) => { const sum = box.points.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]); const n=box.points.length||1; return [Math.round(sum[0]/n),Math.round(sum[1]/n),Math.round(sum[2]/n)]; }));
+      return palette.filter((color,i)=>palette.findIndex((p)=>p[0]===color[0]&&p[1]===color[1]&&p[2]===color[2])===i).slice(0,wanted);
     }
 
     function mapPixels(data, palette) {
@@ -435,7 +444,7 @@
       for (let p = 0; p < indices.length; p++) {
         const q=p*4, a=data[q+3]/255, r=Math.round(data[q]*a+255*(1-a)), g=Math.round(data[q+1]*a+255*(1-a)), b=Math.round(data[q+2]*a+255*(1-a));
         const key=(r>>3)<<10|(g>>3)<<5|(b>>3); let best=cache[key];
-        if(best<0){let dist=Infinity; for(let i=0;i<palette.length;i++){const dr=r-palette[i][0],dg=g-palette[i][1],db=b-palette[i][2],d=dr*dr+dg*dg+db*db;if(d<dist){dist=d;best=i;}} cache[key]=best;}
+        if(best<0){let dist=Infinity; for(let i=0;i<palette.length;i++){const dr=r-palette[i][0],dg=g-palette[i][1],db=b-palette[i][2],mean=(r+palette[i][0])>>1,d=((512+mean)*dr*dr>>8)+4*dg*dg+((767-mean)*db*db>>8);if(d<dist){dist=d;best=i;}} cache[key]=best;}
         indices[p]=best;
       }
       return indices;
@@ -445,12 +454,21 @@
       const source = document.createElement('canvas');
       source.width = imageData.width; source.height = imageData.height;
       source.getContext('2d').putImageData(imageData, 0, 0);
+      let current = source;
+      while (current.width > targetWidth * 2 || current.height > targetHeight * 2) {
+        const step = document.createElement('canvas');
+        step.width = Math.max(targetWidth, Math.round(current.width / 2));
+        step.height = Math.max(targetHeight, Math.round(current.height / 2));
+        const stepCtx = step.getContext('2d');
+        stepCtx.imageSmoothingEnabled = true; stepCtx.imageSmoothingQuality = 'high';
+        stepCtx.drawImage(current, 0, 0, step.width, step.height);
+        current = step;
+      }
       const target = document.createElement('canvas');
       target.width = targetWidth; target.height = targetHeight;
       const ctx = target.getContext('2d', { willReadFrequently: true });
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(current, 0, 0, targetWidth, targetHeight);
       return ctx.getImageData(0, 0, targetWidth, targetHeight);
     }
 
@@ -487,48 +505,43 @@
     async function convert() {
       if (!state.imageData) return;
       convertBtn.disabled = true; saveBtn.disabled = true; resetOutput();
-      setStatus('正在分析颜色并压缩，请稍候…', 'working');
+      setStatus('正在保留完整色彩范围并寻找最佳分辨率，请稍候…', 'working');
       try {
         await nextFrame();
-        const { data, width, height } = state.imageData;
-        let result = null, usedColors = 0, outputWidth = width, outputHeight = height, limited = false;
-        const palettes = new Map(), resizedImages = new Map();
-        const getPalette = (imageData, colors) => {
-          const key=`${imageData.width}x${imageData.height}:${colors}`;
-          if(!palettes.has(key))palettes.set(key,buildPalette(imageData.data,colors));
-          return palettes.get(key);
+        const { width, height } = state.imageData, longest = Math.max(width,height), cache = new Map();
+        const encodeAt = (side) => {
+          const scale=Math.min(1,side/longest), outputWidth=Math.max(1,Math.round(width*scale)), outputHeight=Math.max(1,Math.round(height*scale));
+          const key=`${outputWidth}x${outputHeight}`; if(cache.has(key))return cache.get(key);
+          const imageData=scale===1?state.imageData:resizeImageData(state.imageData,outputWidth,outputHeight);
+          const palette=buildPalette(imageData.data,256), indices=mapPixels(imageData.data,palette), bytes=encodeGif(outputWidth,outputHeight,palette,indices);
+          const encoded={bytes,palette,outputWidth,outputHeight}; cache.set(key,encoded); return encoded;
         };
-        for (const colors of [256,128,64,32,16,8,4,2]) {
-          const palette=getPalette(state.imageData,colors), indices=mapPixels(data,palette), bytes=encodeGif(width,height,palette,indices);
-          result=bytes; usedColors=palette.length;
-          if(bytes.length<=TARGET_BYTES) break;
-          await nextFrame();
-        }
-        if(result.length>TARGET_BYTES){
-          const strategies=[[960,128],[960,64],[840,128],[840,64],[720,128],[720,64],[640,128],[640,64],[560,128],[560,64],[480,128],[480,64],[420,128],[420,64],[360,128],[360,64],[320,128],[320,64],[280,128],[280,64],[240,128],[240,64],[240,32],[200,64],[200,32],[160,64],[160,32],[128,32],[128,16],[96,16],[96,8],[72,8],[64,8]];
-          const longest=Math.max(width,height);
-          for(const [targetSide,colors] of strategies){
-            if(targetSide>=longest)continue;
-            const scale=targetSide/longest, resizedWidth=Math.max(1,Math.round(width*scale)), resizedHeight=Math.max(1,Math.round(height*scale));
-            const resizeKey=`${resizedWidth}x${resizedHeight}`;
-            if(!resizedImages.has(resizeKey))resizedImages.set(resizeKey,resizeImageData(state.imageData,resizedWidth,resizedHeight));
-            const resized=resizedImages.get(resizeKey), palette=getPalette(resized,colors);
-            const indices=mapPixels(resized.data,palette), bytes=encodeGif(resizedWidth,resizedHeight,palette,indices);
-            result=bytes;usedColors=palette.length;outputWidth=resizedWidth;outputHeight=resizedHeight;limited=true;
-            if(bytes.length<=TARGET_BYTES)break;
-            await nextFrame();
+        let trial=encodeAt(longest), best=trial, limited=false;
+        if(trial.bytes.length>TARGET_BYTES){
+          let failSide=longest, passSide=0, side=Math.max(48,Math.floor(longest*Math.max(.3,Math.min(.85,Math.sqrt(TARGET_BYTES/trial.bytes.length)*.92))));
+          best=null;
+          while(!best){
+            await nextFrame(); trial=encodeAt(side);
+            if(trial.bytes.length<=TARGET_BYTES){best=trial;passSide=side;break;}
+            failSide=side;
+            if(side===48)throw new Error(`最低可用分辨率结果仍为 ${formatBytes(trial.bytes.length)}，无法达到 20 KB。`);
+            side=Math.max(48,Math.floor(side*Math.max(.35,Math.min(.82,Math.sqrt(TARGET_BYTES/trial.bytes.length)*.92))));
           }
+          for(let i=0;i<5&&failSide-passSide>2;i++){
+            await nextFrame(); const mid=Math.floor((passSide+failSide)/2), candidate=encodeAt(mid);
+            if(candidate.bytes.length<=TARGET_BYTES){best=candidate;passSide=mid;}else failSide=mid;
+          }
+          limited=true;
         }
-        if(result.length>TARGET_BYTES) throw new Error(`最低分辨率结果仍为 ${formatBytes(result.length)}，无法达到 10 KB。请换用内容更简单的图片。`);
+        const {bytes:result,palette,outputWidth,outputHeight}=best, usedColors=palette.length;
         state.gifBlob=new Blob([result],{type:'image/gif'}); state.outputUrl=URL.createObjectURL(state.gifBlob);
         outputImage.src=state.outputUrl; outputImage.classList.add('visible'); $('outputEmpty').style.display='none'; saveBtn.disabled=false;
         $('outputStats').textContent=`${outputWidth} × ${outputHeight} · ${usedColors} 色 · ${formatBytes(result.length)}`;
-        const note=limited?`已按原始比例缩小至 ${outputWidth} × ${outputHeight}，使用 ${usedColors} 色调色板。`:`已保留原始尺寸，使用 ${usedColors} 色调色板。`;
+        const note=limited?`已保留完整自适应调色板，并按原始比例缩小至 ${outputWidth} × ${outputHeight}。`:'已保留原始尺寸与完整自适应调色板。';
         setStatus(`${note} 输出 ${formatBytes(result.length)}。`,'success');
       } catch(error){setStatus(error.message||'转换失败。','error');}
       finally{convertBtn.disabled=false;}
     }
-
     async function saveGif() {
       if(!state.gifBlob)return;
       const base=(state.file?.name||'image').replace(/\.[^.]+$/,''); const name=`${base}.gif`;
